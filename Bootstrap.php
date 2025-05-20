@@ -3,7 +3,8 @@
 namespace DemoShop;
 
 use DemoShop\Infrastructure\DI\ServiceRegistry;
-use DemoShop\Presentation\Controller\Controller;
+use DemoShop\Presentation\Controller\AdminController;
+use DemoShop\Presentation\Controller\ViewController;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
@@ -23,7 +24,8 @@ class Bootstrap
 
     private static function registerControllers(): void
     {
-        ServiceRegistry::set(Controller::class, new Controller());
+        ServiceRegistry::set(ViewController::class, new ViewController());
+        ServiceRegistry::set(AdminController::class, new AdminController());
     }
 
     private static function registerRoutes(): void
@@ -31,9 +33,11 @@ class Bootstrap
         $router = new Router();
 
         try {
-            $controller = ServiceRegistry::get(Controller::class);
-            $router->add('GET', '/', [$controller, 'landingPage']);
-            $router->add('GET', '/login', [$controller, 'loginPage']);
+            $viewController = ServiceRegistry::get(ViewController::class);
+            $adminController = ServiceRegistry::get(AdminController::class);
+            $router->add('GET', '/', [$viewController, 'landingPage']);
+            $router->add('GET', '/login', [$adminController, 'loginPage']);
+            $router->add('POST', '/login', [$adminController, 'sendLoginInfo']);
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
         }

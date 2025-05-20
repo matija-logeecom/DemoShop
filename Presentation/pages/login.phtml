@@ -11,20 +11,27 @@
 </head>
 <body>
 
-<div>
-    <form method="POST" action="login.phtml">
+<div class="login-container">
+    <h2 class="admin-heading">Admin Login</h2>
+    <form method="POST">
         <fieldset>
             <div>
                 <label for="username">Username</label>
-                <input id="username" name="username" type="text"/>
+                <input id="username" name="username" type="text" value="<?= htmlspecialchars($username) ?>" required/>
+                <?php if ($usernameError !== ''): ?>
+                    <span class="error"><?= htmlspecialchars($usernameError) ?></span>
+                <?php endif; ?>
             </div>
 
             <div>
                 <label for="password">Password</label>
-                <input id="password" name="password" type="password"/>
+                <input id="password" name="password" type="password" required/>
+                <?php if ($passwordError !== ''): ?>
+                    <span class="error"><?= htmlspecialchars($passwordError) ?></span>
+                <?php endif; ?>
             </div>
 
-            <button type="button">Login</button> <!-- Does not submit for now -->
+            <button type="submit">Login</button> <!-- Does not submit for now -->
 
         </fieldset>
     </form>
