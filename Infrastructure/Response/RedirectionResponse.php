@@ -5,6 +5,7 @@ namespace DemoShop\Infrastructure\Response;
 /*
  * Class for handling redirect logic
  */
+
 class RedirectionResponse extends Response
 {
     private string $url;

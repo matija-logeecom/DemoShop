@@ -58,7 +58,7 @@ class HtmlResponse extends Response
      */
     public static function createNotFound(string $message = "Page not found."): self
     {
-        $errorPagePath = VIEWS_PATH . "/server_error.phtml";
+        $errorPagePath = VIEWS_PATH . "/errors/404.phtml";
         $variables = [
             'errorTitle' => '404 - Page Not Found',
             'errorHeadline' => '404 - Page Not Found',
@@ -74,7 +74,7 @@ class HtmlResponse extends Response
      */
     public static function createBadRequest(string $message = "Bad Request."): self
     {
-        $errorPagePath = VIEWS_PATH . "/server_error.phtml";
+        $errorPagePath = VIEWS_PATH . "/errors/400.phtml";
         $variables = [
             'errorTitle' => '400 - Bad Request',
             'errorHeadline' => '404 - Bad Request',
@@ -90,7 +90,7 @@ class HtmlResponse extends Response
      */
     public static function createInternalServerError(string $message = "Bad Request."): self
     {
-        $errorPagePath = VIEWS_PATH . "/server_error.phtml";
+        $errorPagePath = VIEWS_PATH . "/errors/500.phtml";
         $variables = [
             'errorTitle' => '500 - Internal Server Error',
             'errorHeadline' => '500 - Internal Server Error',

@@ -6,6 +6,7 @@ use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Presentation\Controller\Controller;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
 use Exception;
 
 class Bootstrap
@@ -13,7 +14,7 @@ class Bootstrap
     public static function init(): void
     {
         self::registerControllers();
-        
+
         self::registerRoutes();
 
         self::registerRequest();
@@ -34,7 +35,7 @@ class Bootstrap
             $router->add('GET', '/', [$controller, 'landingPage']);
             $router->add('GET', '/login', [$controller, 'loginPage']);
         } catch (Exception $e) {
-            echo $e->getMessage();
+            HtmlResponse::createInternalServerError()->view();
         }
 
         ServiceRegistry::set(Router::class, $router);

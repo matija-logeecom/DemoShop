@@ -1,6 +1,13 @@
 RewriteEngine On
 
-# Redirect all non-file/directory requests to index.php
+# Allow only index.php (no other .php files)
+RewriteRule ^(?!index\.php$).*\.php$ - [F,NC,L]
+
+RewriteRule ^(vendor/|composer\.json|composer\.lock|README\.md|\.git/) - [F,NC,L]
+
+RewriteRule ^Includes/style/.*?\.css$ - [L,NC]
+
+# Route all other requests to index.php (Your existing rules)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+RewriteRule ^(.*)$ index.php [QSA,L]

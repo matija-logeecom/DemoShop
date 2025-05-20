@@ -4,12 +4,26 @@ namespace DemoShop\Infrastructure\Router;
 
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
 use Exception;
+
+/*
+ * Class responsible for routing
+ */
 
 class Router
 {
     private array $routes = [];
 
+    /**
+     * Adds route to routes array
+     *
+     * @param string $method
+     * @param string $path
+     * @param callable $handler
+     *
+     * @return void
+     */
     public function add(string $method, string $path, callable $handler): void
     {
         $paramNames = $this->extractParamNames($path);
@@ -22,6 +36,11 @@ class Router
         ];
     }
 
+    /**
+     * Dispatches the current request
+     *
+     * @return void
+     */
     public function route(): void
     {
         try {
@@ -33,6 +52,13 @@ class Router
 
     }
 
+    /**
+     * Dispatches the provided request
+     *
+     * @param Request $request \
+     *
+     * @return void
+     */
     private function dispatch(Request $request): void
     {
         $uri = $request->getUri();
@@ -51,10 +77,16 @@ class Router
             }
         }
 
-        http_response_code(404);
-        echo "404 Not Found";
+        HtmlResponse::createNotFound()->view();
     }
 
+    /**
+     * Generates a regex pattern based on the provided URL
+     *
+     * @param string $path
+     *
+     * @return string
+     */
     private function compilePattern(string $path): string
     {
         $regex = preg_replace('#\{(\w+)\}#', '([^/]+)', $path);
@@ -62,6 +94,13 @@ class Router
         return "#^{$regex}$#";
     }
 
+    /**
+     * Extracts parameter names from the provided URL
+     *
+     * @param string $path
+     *
+     * @return array
+     */
     private function extractParamNames(string $path): array
     {
         preg_match_all('#\{(\w+)\}#', $path, $matches);
