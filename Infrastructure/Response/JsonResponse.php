@@ -1,6 +1,6 @@
 <?php
 
-namespace BookStore\Infrastructure\Response;
+namespace DemoShop\Infrastructure\Response;
 
 /*
  * Class for handling JSON response logic

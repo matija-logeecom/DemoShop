@@ -45,7 +45,7 @@ class Router
 
                 $request->setRouteParams($paramMap);
 
-                call_user_func($route['callback'], $request);
+                call_user_func($route['callback'], $request)->view();
 
                 return;
             }
@@ -57,7 +57,7 @@ class Router
 
     private function compilePattern(string $path): string
     {
-        $regex = preg_replace('#\{(\w+)}#', '([^/]+)', $path);
+        $regex = preg_replace('#\{(\w+)\}#', '([^/]+)', $path);
 
         return "#^{$regex}$#";
     }

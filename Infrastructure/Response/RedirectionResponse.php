@@ -1,13 +1,10 @@
 <?php
 
-namespace BookStore\Infrastructure\Response;
-
-use BookStore\Infrastructure\Response\Response;
+namespace DemoShop\Infrastructure\Response;
 
 /*
  * Class for handling redirect logic
  */
-
 class RedirectionResponse extends Response
 {
     private string $url;
@@ -39,7 +36,7 @@ class RedirectionResponse extends Response
     /**
      * @inheritDoc
      */
-    static public function createNotFound(string $message = "Page not found."): \BookStore\Infrastructure\Response\Response
+    static public function createNotFound(string $message = "Page not found."): Response
     {
         return new self('index.php', 404);
     }
@@ -47,7 +44,7 @@ class RedirectionResponse extends Response
     /**
      * @inheritDoc
      */
-    public static function createBadRequest(string $message = "Bad Request."): \BookStore\Infrastructure\Response\Response
+    public static function createBadRequest(string $message = "Bad Request."): Response
     {
         return new self('index.php', 400);
     }
@@ -55,7 +52,7 @@ class RedirectionResponse extends Response
     /**
      * @inheritDoc
      */
-    public static function createInternalServerError(string $message = "An internal server error occurred."): \BookStore\Infrastructure\Response\Response
+    public static function createInternalServerError(string $message = "An internal server error occurred."): Response
     {
         return new self('index.php', 500);
     }

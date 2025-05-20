@@ -2,27 +2,21 @@
 
 namespace DemoShop\Presentation\Controller;
 
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\Response;
 use DemoShop\Infrastructure\Request\Request;
 
 class Controller
 {
-    public function home(): void
+    public function landingPage(Request $request): Response
     {
-        echo 'Hello!';
+        $path = VIEWS_PATH . '/landing.phtml';
+        return new HtmlResponse($path);
     }
 
-    public function test(Request $request): void
+    public function loginPage(Request $request): Response
     {
-        echo "Here is your number: {$request->getRouteParam('num')}";
-    }
-
-    public function params(Request $request): void
-    {
-        echo "Params: {$request->getRouteParams()}";
-    }
-
-    public function something(Request $request): void
-    {
-        echo "Category: {$request->getRouteParam('cat')}, ID: {$request->getRouteParam('id')}";
+        $path = VIEWS_PATH . '/login.phtml';
+        return new HtmlResponse($path);
     }
 }

@@ -6,6 +6,7 @@ use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Presentation\Controller\Controller;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\Request\Request;
+use Exception;
 
 class Bootstrap
 {
@@ -28,11 +29,13 @@ class Bootstrap
     {
         $router = new Router();
 
-        $controller = ServiceRegistry::get(Controller::class);
-
-        $router->add('GET', '/', [$controller, 'home']);
-        $router->add('GET', '/number/{num}', [$controller, 'test']);
-        $router->add('GET', '/something/{cat}/somethingelse/{id}', [$controller, 'something']);
+        try {
+            $controller = ServiceRegistry::get(Controller::class);
+            $router->add('GET', '/', [$controller, 'landingPage']);
+            $router->add('GET', '/login', [$controller, 'loginPage']);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
 
         ServiceRegistry::set(Router::class, $router);
     }

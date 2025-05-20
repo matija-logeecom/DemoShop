@@ -5,7 +5,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 use DemoShop\Bootstrap;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
-use DemoShop\Presentation\Controller\Controller;
+
+const VIEWS_PATH = __DIR__ . '/Presentation/pages';
 
 try {
     BootStrap::init();
