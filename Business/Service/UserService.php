@@ -2,19 +2,20 @@
 
 namespace DemoShop\Business\Service;
 
-use DemoShop\Presentation\Controller\AdminController;
+use DemoShop\Business\Model\Admin;
+use DemoShop\Data\Repository\UserRepository;
 
 class UserService implements UserServiceInterface
 {
-    private AdminController $controller;
-    public function __construct(AdminController $controller)
+    private UserRepository $repository;
+    public function __construct(UserRepository $repository)
     {
-        $this->controller = $controller;
+        $this->repository = $repository;
     }
 
-    public function authenticate(string $username, string $password)
+    public function authenticate(Admin $admin): bool
     {
-
+        return $this->repository->authenticate($admin);
     }
 
 

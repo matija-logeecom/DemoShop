@@ -8,13 +8,28 @@ use DemoShop\Presentation\Controller\ViewController;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Business\Service\UserServiceInterface;
+use DemoShop\Business\Service\UserService;
+use DemoShop\Data\Repository\UserRepository;
+use Dotenv\Dotenv;
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Exception;
 
 class Bootstrap
 {
+    /**
+     * @throws Exception
+     */
     public static function init(): void
     {
+        $dotenv = Dotenv::createImmutable(__DIR__);
+        $dotenv->load();
+
+        self::registerRepositories();
+        self::registerServices();
         self::registerControllers();
+
+        self::initEloquent();
 
         self::registerRoutes();
 
@@ -22,10 +37,34 @@ class Bootstrap
 
     }
 
+    private static function registerRepositories(): void
+    {
+        ServiceRegistry::set(UserRepository::class, new UserRepository());
+    }
+
+    /**
+     * @throws Exception
+     */
+    private static function registerServices(): void
+    {
+        ServiceRegistry::set(UserServiceInterface::class,
+            new UserService(
+                ServiceRegistry::get(UserRepository::class)
+            ));
+    }
+
+    /**
+     * @throws Exception
+     */
     private static function registerControllers(): void
     {
-        ServiceRegistry::set(ViewController::class, new ViewController());
-        ServiceRegistry::set(AdminController::class, new AdminController());
+        ServiceRegistry::set(ViewController::class,
+            new ViewController()
+        );
+        ServiceRegistry::set(AdminController::class,
+            new AdminController(
+                ServiceRegistry::get(UserServiceInterface::class),
+            ));
     }
 
     private static function registerRoutes(): void
@@ -50,4 +89,20 @@ class Bootstrap
         ServiceRegistry::set(Request::class, new Request());
     }
 
+    private static function initEloquent(): void
+    {
+        $capsule = new Capsule;
+
+        $capsule->addConnection([
+            'driver' => $_ENV['DB_DRIVER'],
+            'host' => $_ENV['DB_HOST'],
+            'port' => $_ENV['DB_PORT'],
+            'database' => $_ENV['DB_NAME'],
+            'username' => $_ENV['DB_USERNAME'],
+            'password' => $_ENV['DB_PASSWORD'],
+        ]);
+
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+    }
 }

@@ -2,7 +2,9 @@
 
 namespace DemoShop\Business\Service;
 
+use DemoShop\Business\Model\Admin;
+
 interface UserServiceInterface
 {
-    public function authenticate(string $username, string $password);
+    public function authenticate(Admin $admin): bool;
 }

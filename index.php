@@ -9,7 +9,7 @@ use DemoShop\Infrastructure\DI\ServiceRegistry;
 const VIEWS_PATH = __DIR__ . '/Presentation/pages';
 
 try {
-    BootStrap::init();
+    Bootstrap::init();
     ServiceRegistry::get(Router::class)->route();
 } catch (Exception $e) {
     echo $e->getMessage();

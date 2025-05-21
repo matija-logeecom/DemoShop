@@ -5,17 +5,16 @@ namespace DemoShop\Presentation\Controller;
 use DemoShop\Infrastructure\Response\RedirectionResponse;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
-use DemoShop\Business\Service\UserServiceInterface;
 use DemoShop\Infrastructure\Response\Response;
-use Exception;
-
+use DemoShop\Business\Service\UserServiceInterface;
+use DemoShop\Business\Model\Admin;
 class AdminController
 {
     private UserServiceInterface $userService;
-//    public function __construct(UserServiceInterface $userService)
-//    {
-//        $this->userService = $userService;
-//    }
+    public function __construct(UserServiceInterface $userService)
+    {
+        $this->userService = $userService;
+    }
 
     /**
      * Makes login page response
@@ -55,7 +54,17 @@ class AdminController
             return $this->loginPage($request);
         }
 
-        return new RedirectionResponse('blabla.php');
+        $admin = new Admin($username, $password);
+        if (!$this->userService->authenticate($admin)) {
+            $request->setRouteParams([
+                'username' => $username,
+                'passwordError' => 'Username and password do not match.',
+            ]);
+
+            return $this->loginPage($request);
+        }
+
+        return new RedirectionResponse('/');
     }
     private function isValidUsername(string $username, array &$errors): bool
     {
