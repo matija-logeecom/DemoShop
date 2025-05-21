@@ -6,12 +6,22 @@ use DemoShop\Infrastructure\Response\RedirectionResponse;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
 use DemoShop\Infrastructure\Response\Response;
-use DemoShop\Business\Service\UserServiceInterface;
+use DemoShop\Business\Service\AdminServiceInterface;
 use DemoShop\Business\Model\Admin;
+
+/*
+ * Stores logic for handlin Admin requests
+ */
 class AdminController
 {
-    private UserServiceInterface $userService;
-    public function __construct(UserServiceInterface $userService)
+    private AdminServiceInterface $userService;
+
+    /**
+     * Constructs Admin Controller instance
+     *
+     * @param AdminServiceInterface $userService
+     */
+    public function __construct(AdminServiceInterface $userService)
     {
         $this->userService = $userService;
     }
@@ -34,6 +44,13 @@ class AdminController
         ]);
     }
 
+    /**
+     * Sends Login info to service
+     *
+     * @param Request $request
+     *
+     * @return Response
+     */
     public function sendLoginInfo(Request $request): Response
     {
         $errors['username'] = '';
@@ -66,6 +83,15 @@ class AdminController
 
         return new RedirectionResponse('/');
     }
+
+    /**
+     * Checks if username is valid
+     *
+     * @param string $username
+     * @param array $errors
+     *
+     * @return bool
+     */
     private function isValidUsername(string $username, array &$errors): bool
     {
         if (empty($username)) {
@@ -77,10 +103,24 @@ class AdminController
         return true;
     }
 
+    /**
+     * Checks if password is valid
+     *
+     * @param string $password
+     * @param array $errors
+     *
+     * @return bool
+     */
     private function isValidPassword(string $password, array &$errors): bool
     {
         if (empty($password)) {
             $errors['password'] = 'Password cannot be empty';
+
+            return false;
+        }
+
+        if (strlen($password) < 8) {
+            $errors['password'] = 'Password must be at least 8 characters long';
 
             return false;
         }

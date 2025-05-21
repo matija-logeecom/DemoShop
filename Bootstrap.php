@@ -2,15 +2,17 @@
 
 namespace DemoShop;
 
+use DemoShop\Data\Encryption\Encryptor;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Presentation\Controller\AdminController;
 use DemoShop\Presentation\Controller\ViewController;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
-use DemoShop\Business\Service\UserServiceInterface;
-use DemoShop\Business\Service\UserService;
-use DemoShop\Data\Repository\UserRepository;
+use DemoShop\Business\Service\AdminServiceInterface;
+use DemoShop\Business\Service\AdminService;
+use DemoShop\Business\Encryption\EncryptorInterface;
+use DemoShop\Data\Repository\AdminRepository;
 use Dotenv\Dotenv;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Exception;
@@ -25,11 +27,12 @@ class Bootstrap
         $dotenv = Dotenv::createImmutable(__DIR__);
         $dotenv->load();
 
+        self::initEncryption();
+        self::initEloquent();
+
         self::registerRepositories();
         self::registerServices();
         self::registerControllers();
-
-        self::initEloquent();
 
         self::registerRoutes();
 
@@ -37,9 +40,13 @@ class Bootstrap
 
     }
 
+    /**
+     * @throws Exception
+     */
     private static function registerRepositories(): void
     {
-        ServiceRegistry::set(UserRepository::class, new UserRepository());
+        ServiceRegistry::set(AdminRepository::class,
+            new AdminRepository(ServiceRegistry::get(EncryptorInterface::class)));
     }
 
     /**
@@ -47,9 +54,9 @@ class Bootstrap
      */
     private static function registerServices(): void
     {
-        ServiceRegistry::set(UserServiceInterface::class,
-            new UserService(
-                ServiceRegistry::get(UserRepository::class)
+        ServiceRegistry::set(AdminServiceInterface::class,
+            new AdminService(
+                ServiceRegistry::get(AdminRepository::class)
             ));
     }
 
@@ -63,7 +70,7 @@ class Bootstrap
         );
         ServiceRegistry::set(AdminController::class,
             new AdminController(
-                ServiceRegistry::get(UserServiceInterface::class),
+                ServiceRegistry::get(AdminServiceInterface::class),
             ));
     }
 
@@ -104,5 +111,11 @@ class Bootstrap
 
         $capsule->setAsGlobal();
         $capsule->bootEloquent();
+    }
+
+    private static function initEncryption(): void
+    {
+        $key = $_ENV['APP_KEY'];
+        ServiceRegistry::set(EncryptorInterface::class, new Encryptor($key));
     }
 }
