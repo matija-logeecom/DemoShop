@@ -2,8 +2,10 @@
 
 namespace DemoShop;
 
+use DemoShop\Infrastructure\Session\SessionManager;
 use DemoShop\Data\Encryption\Encryptor;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\ValidateMiddleware;
 use DemoShop\Presentation\Controller\AdminController;
@@ -32,6 +34,10 @@ class Bootstrap
      */
     public static function init(): void
     {
+        if (!SessionManager::getInstance()->has('adminLoggedIn')) {
+            SessionManager::getInstance()->set('adminLoggedIn', false);
+        }
+
         $dotenv = Dotenv::createImmutable(__DIR__);
         $dotenv->load();
 
@@ -42,7 +48,9 @@ class Bootstrap
         self::registerServices();
         self::registerControllers();
 
-        self::registerMiddleware();
+        self::registerLoginMiddleware();
+        self::registerAuthorizeMiddleware();
+        self::registerAlreadyLoggedInMiddleware();
 
         self::registerRoutes();
 
@@ -104,12 +112,23 @@ class Bootstrap
             $adminController = ServiceRegistry::get(AdminController::class);
 
             $router->add('GET', '/', [$viewController, 'landingPage']);
-            $router->add('GET', '/login', [$adminController, 'loginPage']);
+            $router->add(
+                'GET',
+                '/login',
+                [$adminController, 'loginPage'],
+                'adminCheckLoginPipeline'
+            );
+            $router->add(
+                'GET',
+                '/admin',
+                [$adminController, 'adminPage'],
+                'adminAuthorizePipeline'
+            );
             $router->add(
                 'POST',
                 '/login',
                 [$adminController, 'sendLoginInfo'],
-                'loginPostPipeline'
+                'adminLoginPipeline'
             );
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
@@ -160,16 +179,32 @@ class Bootstrap
      *
      * @throws Exception
      */
-    private static function registerMiddleware(): void
+    private static function registerLoginMiddleware(): void
     {
         $middleware = new ValidateMiddleware(
-            ServiceRegistry::get(AdminServiceInterface::class),
+            ServiceRegistry::get(AdminServiceInterface::class)
         );
-        ServiceRegistry::set('loginPostPipeline', $middleware);
 
         $middleware
-            ->linkWith(new AuthorizeMiddleware(
-                ServiceRegistry::get(AdminServiceInterface::class),
-            ));
+            ->linkWith(new AlreadyLoggedInMiddleware());
+        ServiceRegistry::set('adminLoginPipeline', $middleware);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private static function registerAuthorizeMiddleware(): void
+    {
+        $middleware = new AuthorizeMiddleware();
+        ServiceRegistry::set('adminAuthorizePipeline', $middleware);
+    }
+
+    /**
+     * @throws Exception
+     */
+    private static function registerAlreadyLoggedInMiddleware(): void
+    {
+        $middleware = new AlreadyLoggedInMiddleware();
+        ServiceRegistry::set('adminCheckLoginPipeline', $middleware);
     }
 }

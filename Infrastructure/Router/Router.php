@@ -56,6 +56,11 @@ class Router
             }
 
             $controller = ServiceRegistry::get(AdminController::class);
+            if ($e->getMessage() === 'You are already logged in.') {
+                $controller->adminPage()->view();
+                return;
+            }
+
             $controller->loginPage($request)->view();
         }
     }

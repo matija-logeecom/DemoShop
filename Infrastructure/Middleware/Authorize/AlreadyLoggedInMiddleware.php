@@ -7,18 +7,17 @@ use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
 /*
- * Middleware for admin authorization
+ * Checks if the user is already logged in
  */
-
-class AuthorizeMiddleware extends Middleware
+class AlreadyLoggedInMiddleware extends Middleware
 {
     /**
      * @inheritDoc
      */
     public function check(Request $request): void
     {
-        if (!SessionManager::getInstance()->get('adminLoggedIn')) {
-            throw new Exception('You are not authorized to access this page.');
+        if (SessionManager::getInstance()->get(('adminLoggedIn'))) {
+            throw new Exception('You are already logged in.');
         }
 
         parent::check($request);
