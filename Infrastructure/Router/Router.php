@@ -5,6 +5,7 @@ namespace DemoShop\Infrastructure\Router;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Presentation\Controller\AdminController;
 use Exception;
 
 /*
@@ -21,10 +22,11 @@ class Router
      * @param string $method
      * @param string $path
      * @param callable $handler
+     * @param string|null $middlewareName
      *
      * @return void
      */
-    public function add(string $method, string $path, callable $handler): void
+    public function add(string $method, string $path, callable $handler, ?string $middlewareName = null): void
     {
         $paramNames = $this->extractParamNames($path);
 
@@ -32,14 +34,15 @@ class Router
             'pattern' => $this->compilePattern($path),
             'original' => $path,
             'callback' => $handler,
-            'paramNames' => $paramNames
+            'paramNames' => $paramNames,
+            'middlewareName' => $middlewareName
         ];
     }
 
     /**
      * Dispatches the current request
      *
-     * @return void
+     * @throws Exception
      */
     public function route(): void
     {
@@ -47,9 +50,14 @@ class Router
             $request = ServiceRegistry::get(Request::class);
             $this->dispatch($request);
         } catch (Exception $e) {
-            echo $e->getMessage();
-        }
+            if (!isset($request)) {
+                HtmlResponse::createInternalServerError();
+                return;
+            }
 
+            $controller = ServiceRegistry::get(AdminController::class);
+            $controller->loginPage($request)->view();
+        }
     }
 
     /**
@@ -57,7 +65,7 @@ class Router
      *
      * @param Request $request \
      *
-     * @return void
+     * @throws Exception
      */
     private function dispatch(Request $request): void
     {
@@ -66,6 +74,11 @@ class Router
 
         foreach ($this->routes[$method] as $route) {
             if (preg_match($route['pattern'], $uri, $matches)) {
+                if (!empty($route['middlewareName'])) {
+                    $chain = ServiceRegistry::get($route['middlewareName']);
+                    $chain->check($request);
+                }
+
                 $params = array_slice($matches, 1);
                 $paramMap = array_combine($route['paramNames'], $params);
 

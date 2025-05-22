@@ -11,6 +11,7 @@ use RuntimeException;
 /*
  * Stores methods for encrypting and decrypting strings based on key
  */
+
 class Encryptor implements EncryptorInterface
 {
     private Encrypter $encrypter;

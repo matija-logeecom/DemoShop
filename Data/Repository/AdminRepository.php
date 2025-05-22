@@ -10,6 +10,7 @@ use Illuminate\Contracts\Encryption\DecryptException;
 /*
  * Stores logic for interacting with database
  */
+
 class AdminRepository
 {
     private EncryptorInterface $encryptor;
@@ -37,7 +38,7 @@ class AdminRepository
         $plainPassword = $admin->getPassword();
 
         $allAdminUsers = AdminEntity::all();
-        foreach($allAdminUsers as $adminUser) {
+        foreach ($allAdminUsers as $adminUser) {
             try {
                 $decryptedUsername = $this->encryptor->decrypt($adminUser->username);
                 if ($decryptedUsername === $plainUsername) {

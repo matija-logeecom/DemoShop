@@ -5,6 +5,7 @@ namespace DemoShop\Business\Model;
 /*
  * Class for storing Admin Model
  */
+
 class Admin
 {
     private string $username;
@@ -41,6 +42,4 @@ class Admin
     {
         return $this->password;
     }
-
-
 }

@@ -13,10 +13,10 @@ interface EncryptorInterface
      * @param string $value
      * @param bool $serialize
      *
+     * @return string
      * @throws EncryptException
      *
-     * @return string
- */
+     */
     public function encrypt(string $value, bool $serialize): string;
 
     /**
@@ -25,9 +25,9 @@ interface EncryptorInterface
      * @param string $value
      * @param bool $deserialize
      *
+     * @return string
      * @throws DecryptException
      *
-     * @return string
      */
     public function decrypt(string $value, bool $deserialize): string;
 }

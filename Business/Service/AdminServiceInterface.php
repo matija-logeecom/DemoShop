@@ -14,4 +14,24 @@ interface AdminServiceInterface
      * @return bool
      */
     public function authenticate(Admin $admin): bool;
+
+    /**
+     * Checks if username is valid
+     *
+     * @param string $username
+     * @param array $errors
+     *
+     * @return bool
+     */
+    public function isValidUsername(string $username, array &$errors): bool;
+
+    /**
+     * Checks if password is valid
+     *
+     * @param string $password
+     * @param array $errors
+     *
+     * @return bool
+     */
+    public function isValidPassword(string $password, array &$errors): bool;
 }
