@@ -4,6 +4,7 @@ namespace DemoShop\Business\Service;
 
 use DemoShop\Business\Model\Admin;
 use DemoShop\Data\Repository\AdminRepository;
+use DemoShop\Data\Repository\CategoryRepository;
 
 /*
  * Stores business logic for admins
@@ -12,15 +13,18 @@ use DemoShop\Data\Repository\AdminRepository;
 class AdminService implements AdminServiceInterface
 {
     private AdminRepository $repository;
+    private CategoryRepository $categoryRepository;
 
     /**
      * Constructs Admin Service instance
      *
      * @param AdminRepository $repository
+     * @param CategoryRepository $categoryRepository
      */
-    public function __construct(AdminRepository $repository)
+    public function __construct(AdminRepository $repository, CategoryRepository $categoryRepository)
     {
         $this->repository = $repository;
+        $this->categoryRepository = $categoryRepository;
     }
 
     /**
@@ -43,6 +47,16 @@ class AdminService implements AdminServiceInterface
             'mostOftenViewedProduct' => 'prod 1',
             'numberOfProd1Views' => 32
         ];
+    }
+
+    public function createCategory(array $data): bool
+    {
+        return $this->categoryRepository->addCategory($data);
+    }
+
+    public function getCategories(): array
+    {
+        return $this->categoryRepository->getCategories();
     }
 
     /**

@@ -10,6 +10,7 @@ use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
 use DemoShop\Infrastructure\Response\Response;
 use DemoShop\Business\Service\AdminServiceInterface;
+use Exception;
 
 /*
  * Stores logic for handling Admin requests
@@ -107,5 +108,27 @@ class AdminController
         $data = $this->userService->getDashboardData();
 
         return new JsonResponse($data, 200, [], true);
+    }
+
+    public function createCategory(Request $request): Response
+    {
+        $requestBody = $request->getBody();
+        $success = $this->userService->createCategory($requestBody);
+
+        if (!$success) {
+            return HtmlResponse::createInternalServerError();
+        }
+
+        return new JsonResponse(['success' => true], 201);
+    }
+
+    public function getCategories(Request $request): Response
+    {
+        try {
+            $categoriesData = $this->userService->getCategories();
+            return new JsonResponse($categoriesData, 200);
+        } catch (Exception $e) {
+            return JsonResponse::createInternalServerError();
+        }
     }
 }

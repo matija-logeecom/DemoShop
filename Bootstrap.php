@@ -2,6 +2,7 @@
 
 namespace DemoShop;
 
+use DemoShop\Data\Repository\CategoryRepository;
 use DemoShop\Infrastructure\Session\SessionManager;
 use DemoShop\Data\Encryption\Encryptor;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
@@ -67,6 +68,9 @@ class Bootstrap
     {
         ServiceRegistry::set(AdminRepository::class,
             new AdminRepository(ServiceRegistry::get(EncryptorInterface::class)));
+        ServiceRegistry::set(CategoryRepository::class,
+            new CategoryRepository()
+        );
     }
 
     /**
@@ -78,7 +82,8 @@ class Bootstrap
     {
         ServiceRegistry::set(AdminServiceInterface::class,
             new AdminService(
-                ServiceRegistry::get(AdminRepository::class)
+                ServiceRegistry::get(AdminRepository::class),
+                ServiceRegistry::get(CategoryRepository::class),
             ));
     }
 
@@ -131,6 +136,8 @@ class Bootstrap
                 'adminLoginPipeline'
             );
             $router->add('GET', '/api/dashboard', [$adminController, 'dashboardData']);
+            $router->add('POST', '/api/createCategory', [$adminController, 'createCategory']);
+            $router->add('GET', '/api/categories', [$adminController, 'getCategories']);
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
         }

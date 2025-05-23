@@ -241,3 +241,137 @@ button.admin-button:active,
 .info-box p {
     margin-bottom: 0;
 }
+
+/* CATEGORY PAGE SPECIFIC STYLES */
+
+.categories-container {
+    display: flex;
+    gap: 20px;
+}
+
+.category-tree-panel {
+    flex: 1;
+    /* .content-panel styles will apply as this class is added in JS */
+}
+
+.category-details-panel {
+    flex: 2;
+    /* .content-panel styles will apply as this class is added in JS */
+}
+
+.category-tree {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.tree-actions,
+#pc_categoryForm .details-actions { /* Combined .details-actions from form here */
+    margin-top: 15px;
+}
+
+#pc_categoryForm .details-actions { /* Specific styling if needed for form buttons container */
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Styles for each label-input pair group */
+#pc_categoryForm .form-group {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+#pc_categoryForm .form-group label {
+    flex-basis: 130px;
+    flex-shrink: 0;
+    margin-right: 15px;
+    padding-top: 8px;
+    font-weight: 500;
+    color: #333;
+}
+
+#pc_categoryForm .form-group input[type="text"],
+#pc_categoryForm .form-group textarea {
+    flex-grow: 1;
+    width: 100%;
+    /* Inherits padding, border etc. from general #app-root input styles */
+}
+
+#pc_categoryForm .form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Tree item styling */
+.category-tree li {
+    margin-bottom: 3px;
+    padding: 0;
+    list-style-type: none;
+    cursor: default; /* Click is on category-item-content */
+    border-radius: 0;
+    background-color: transparent !important; /* Ensure LI itself has no background from other rules */
+}
+
+.category-item-content {
+    padding: 5px 8px;
+    border-radius: 4px;
+    color: #333;        /* Default text color */
+    background-color: transparent; /* Default background for the content div */
+    /* cursor: pointer; is set by JS on this element */
+}
+
+/* Hover state ONLY for the .category-item-content of a non-selected li */
+.category-tree li:not(.selected) > .category-item-content:hover {
+    background-color: #f0f0f0;
+    color: #333; /* Keep text color default */
+}
+
+/* Selected state for .category-item-content */
+.category-tree li.selected > .category-item-content {
+    background-color: #007bff;
+    color: white;
+    font-weight: 600;
+}
+
+.tree-toggler {
+    display: inline-block;
+    width: 22px;
+    height: 22px;
+    line-height: 20px; /* Adjust if +/- are not centered */
+    text-align: center;
+    font-family: monospace;
+    font-weight: bold;
+    color: white;
+    background-color: #9dacbb; /* Blue background */
+    border-radius: 4px;
+    margin-right: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.tree-toggler:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Ensure toggler within a selected item remains styled correctly if needed,
+   though current .tree-toggler sets white color which is fine with its blue background. */
+.category-tree li.selected > .category-item-content .tree-toggler {
+    /* color: white; // Already white due to .tree-toggler rule */
+    /* background-color: #0056b3; // Optionally make it darker if parent is selected */
+}
+
+.tree-toggler-placeholder {
+    display: inline-block;
+    width: 22px;   /* Match toggler width */
+    height: 22px;  /* Match toggler height */
+    margin-right: 8px; /* Match toggler margin-right */
+}
+
+.category-tree ul, /* General nested ULs, including .nested-category-list */
+.nested-category-list {
+    list-style-type: none;
+    padding-left: 0; /* Indentation is handled by child LI's margin-left in JS */
+    margin-top: 2px; /* Optional: small space above a sub-list */
+}

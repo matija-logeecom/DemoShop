@@ -1,0 +1,11 @@
+<?php
+
+namespace DemoShop\Data\Model;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    protected $table = 'categories';
+    public $timestamps = false; // <--- ADD THIS LINE
+}
