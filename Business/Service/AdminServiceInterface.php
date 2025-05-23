@@ -34,4 +34,11 @@ interface AdminServiceInterface
      * @return bool
      */
     public function isValidPassword(string $password, array &$errors): bool;
+
+    /**
+     * Gets statistics for dashboard (dummy parameters)
+     *
+     * @return array
+     */
+    public function getDashboardData(): array;
 }

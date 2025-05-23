@@ -2,6 +2,7 @@
 
 namespace DemoShop\Presentation\Controller;
 
+use DemoShop\Infrastructure\Response\JsonResponse;
 use DemoShop\Infrastructure\Session\SessionManager;
 use DemoShop\Business\Model\Admin;
 use DemoShop\Infrastructure\Response\RedirectionResponse;
@@ -92,5 +93,19 @@ class AdminController
 
         SessionManager::getInstance()->set('adminLoggedIn', true);
         return new RedirectionResponse('/admin');
+    }
+
+    /**
+     * Handles request for dashboard data
+     *
+     * @param Request $request
+     *
+     * @return Response
+     */
+    public function dashboardData(Request $request): Response
+    {
+        $data = $this->userService->getDashboardData();
+
+        return new JsonResponse($data, 200, [], true);
     }
 }

@@ -130,6 +130,7 @@ class Bootstrap
                 [$adminController, 'sendLoginInfo'],
                 'adminLoginPipeline'
             );
+            $router->add('GET', '/api/dashboard', [$adminController, 'dashboardData']);
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
         }
@@ -175,7 +176,7 @@ class Bootstrap
     }
 
     /**
-     * Registers middleware
+     * Registers login middleware pipeline
      *
      * @throws Exception
      */
@@ -191,6 +192,8 @@ class Bootstrap
     }
 
     /**
+     * Register authorize middleware pipeline
+     *
      * @throws Exception
      */
     private static function registerAuthorizeMiddleware(): void
@@ -200,6 +203,8 @@ class Bootstrap
     }
 
     /**
+     * Register already logged in middleware pipeline
+     *
      * @throws Exception
      */
     private static function registerAlreadyLoggedInMiddleware(): void

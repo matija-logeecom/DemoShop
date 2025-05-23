@@ -34,6 +34,20 @@ class AdminService implements AdminServiceInterface
     /**
      * @inheritDoc
      */
+    public function getDashboardData(): array
+    {
+        return [
+            'productsCount' => 120,
+            'categoriesCount' => 15,
+            'homePageOpeningCount' => 50,
+            'mostOftenViewedProduct' => 'prod 1',
+            'numberOfProd1Views' => 32
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function isValidUsername(string $username, array &$errors): bool
     {
         if (empty($username)) {

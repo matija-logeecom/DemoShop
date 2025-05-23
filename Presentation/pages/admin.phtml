@@ -3,28 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Landing Page</title>
-    <link rel="stylesheet" href="/Includes/style/admin.css">
+    <title>Admin Dashboard - DemoShop</title>
+
+    <link rel="stylesheet" href="/Includes/style/admin.css"/>
 </head>
 <body>
 <header class="admin-header">
-    <div class="container">
-        <h1>Admin Panel</h1>
-    </div>
+    <h1>DemoShop Admin</h1>
 </header>
 
-<main class="admin-main">
-    <div class="container">
-        <h2>Welcome, Admin!</h2>
-        <p>This is your administrative dashboard. From here, you can manage various aspects of the application.</p>
-        <p>Content will go here.</p>
-    </div>
-</main>
+<div class="admin-layout">
+    <aside class="sidebar">
+        <nav id="admin-nav">
+            <ul>
+                <li><a href="#/">Dashboard</a></li>
+                <li><a href="#/products">Products</a></li>
+                <li><a href="#/product-categories">Product Categories</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main id="app-root">
+        <p>Loading Dashboard...</p>
+    </main>
+</div>
 
 <footer class="admin-footer">
-    <div class="container">
-        <p>&copy; 2024 Your Application</p>
-    </div>
+    <p>&copy; 2025 DemoShop Admin</p>
 </footer>
+
+<script type="module" src="../../Includes/script/router.js"></script>
+<script type="module" src="../../Includes/script/app.js"></script>
 </body>
 </html>

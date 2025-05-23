@@ -9,6 +9,7 @@ use Exception;
 /*
  * Checks if the user is already logged in
  */
+
 class AlreadyLoggedInMiddleware extends Middleware
 {
     /**
