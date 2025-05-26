@@ -10,22 +10,32 @@ class CategoryRepository
 {
     public function addCategory(array $data): bool
     {
-        $newCategory = new Category();
+        try {
+            $newCategory = new Category();
 
-        $newCategory->title = $data['title'];
-        $newCategory->parent = $data['parent'];
-        $newCategory->code = $data['code'];
-        $newCategory->description = $data['description'];
+            $newCategory->title = $data['title'];
+            $newCategory->parent = $data['parent'];
+            $newCategory->code = $data['code'];
+            $newCategory->description = $data['description'];
 
-
-        return $newCategory->save();
+            return $newCategory->save();
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return false;
+        }
     }
 
     public function getCategories(): array
     {
-        return Category::orderBy('title')
-            ->get()
-            ->toArray();
+        try {
+            return Category::orderBy('title')
+                ->get()
+                ->toArray();
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return [];
+        }
+
     }
 
     public function updateCategory(array $data): bool
@@ -74,17 +84,21 @@ class CategoryRepository
 
     private function deleteDescendants(string $parent): void
     {
-        $children = Category::where('parent', $parent)
-            ->get();
+        try {
+            $children = Category::where('parent', $parent)
+                ->get();
 
-        if ($children->isEmpty()) {
-            return;
-        }
+            if ($children->isEmpty()) {
+                return;
+            }
 
-        foreach ($children as $child) {
-            $this->deleteDescendants($child->title);
+            foreach ($children as $child) {
+                $this->deleteDescendants($child->title);
 
-            $child->delete();
+                $child->delete();
+            }
+        } catch (Exception $e) {
+            echo $e->getMessage();
         }
     }
 }

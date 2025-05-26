@@ -1,4 +1,4 @@
-import {deleteData, getData, postData, putData} from "../ajax.js"; // Make sure ajax.js path is correct
+import {deleteData, getData, postData, putData} from "../ajax.js";
 
 // --- STATE VARIABLES ---
 let allCategoriesFlat = [];
@@ -13,13 +13,15 @@ let categoryTreeContainerEl, categoryFormEl, categoryTitleInputEl, categoryParen
     categoryTreePanelEl, categoryDetailsPanelEl, categoryParentSelectEl, h3DetailsEl;
 
 // --- Helper function to create a form group (label + input) ---
-function createFormGroup(labelText, inputId, inputName, inputType = 'text', isTextarea = false, readOnly = true) {
+function createFormGroup(labelText, inputId, inputName, inputType = 'text',
+                         isTextarea = false, readOnly = true) {
     const div = document.createElement('div');
     div.className = 'form-group';
     const label = document.createElement('label');
     label.setAttribute('for', inputId);
     label.textContent = labelText;
-    let inputElement = isTextarea ? document.createElement('textarea') : document.createElement('input');
+    let inputElement =
+        isTextarea ? document.createElement('textarea') : document.createElement('input');
     if (!isTextarea) inputElement.type = inputType;
     inputElement.id = inputId;
     inputElement.name = inputName;
@@ -43,12 +45,10 @@ function createButton(id, text, type = 'button', initiallyHidden = false) {
 function updateUIStates() {
     const categoryIsSelected = !!selectedCategory;
 
-    // Right Panel (Details Panel) Visibility
     if (categoryDetailsPanelEl) {
         categoryDetailsPanelEl.style.display = (categoryIsSelected || isEditingOrCreating) ? '' : 'none';
     }
 
-    // Parent Field Display Logic (Text input vs Select dropdown)
     if (categoryParentDisplayEl && categoryParentSelectEl) {
         if (isEditingOrCreating && categoryFormEl && categoryFormEl.dataset.editingId) {
             categoryParentDisplayEl.style.display = 'none';
@@ -59,20 +59,19 @@ function updateUIStates() {
         }
     }
 
-    // Button States
     if (addRootCategoryBtnEl) addRootCategoryBtnEl.disabled = isEditingOrCreating;
 
     if (addSubCategoryBtnEl) {
         const showAddSub = categoryIsSelected && !isEditingOrCreating;
-        addSubCategoryBtnEl.style.visibility = showAddSub ? 'visible' : 'hidden';
+        addSubCategoryBtnEl.style.visibility = categoryIsSelected ? 'visible' : 'hidden';
         addSubCategoryBtnEl.disabled = !showAddSub;
     }
 
     if (deleteCategoryBtnEl) {
-        const showDelete = categoryIsSelected; // Show if a category is selected
+        const showDelete = categoryIsSelected;
         deleteCategoryBtnEl.style.display = showDelete ? 'inline-block' : 'none';
         if (showDelete) {
-            deleteCategoryBtnEl.disabled = isEditingOrCreating; // Disable if editing/creating
+            deleteCategoryBtnEl.disabled = isEditingOrCreating;
         }
     }
 
@@ -83,18 +82,24 @@ function updateUIStates() {
     if (saveCategoryBtnEl) saveCategoryBtnEl.style.display = isEditingOrCreating ? 'inline-block' : 'none';
     if (cancelCategoryBtnEl) cancelCategoryBtnEl.style.display = isEditingOrCreating ? 'inline-block' : 'none';
 
-    // Heading Text
     if (h3DetailsEl) {
         if (isEditingOrCreating) {
-            if (categoryFormEl && categoryFormEl.dataset.editingId) h3DetailsEl.textContent = 'Edit Category';
-            else if (categoryFormEl && categoryFormEl.dataset.parentIdForNew === "null") h3DetailsEl.textContent = 'Create Root Category';
-            else if (categoryFormEl && categoryFormEl.dataset.parentIdForNew) h3DetailsEl.textContent = 'Create Subcategory';
-            else h3DetailsEl.textContent = 'New Category Details';
-        } else if (categoryIsSelected) h3DetailsEl.textContent = 'Selected category';
-        else h3DetailsEl.textContent = 'Category Details';
+            if (categoryFormEl && categoryFormEl.dataset.editingId) {
+                h3DetailsEl.textContent = 'Edit Category';
+            } else if (categoryFormEl && categoryFormEl.dataset.parentIdForNew === "null") {
+                h3DetailsEl.textContent = 'Create Root Category';
+            } else if (categoryFormEl && categoryFormEl.dataset.parentIdForNew) {
+                h3DetailsEl.textContent = 'Create Subcategory';
+            } else {
+                h3DetailsEl.textContent = 'New Category Details';
+            }
+        } else if (categoryIsSelected) {
+            h3DetailsEl.textContent = 'Selected Category';
+        } else {
+            h3DetailsEl.textContent = 'Category Details';
+        }
     }
 
-    // Tree interactivity
     if (categoryTreeContainerEl) {
         categoryTreeContainerEl.style.pointerEvents = isEditingOrCreating ? 'none' : 'auto';
         categoryTreeContainerEl.style.opacity = isEditingOrCreating ? '0.5' : '1';
@@ -103,72 +108,78 @@ function updateUIStates() {
 
 function updateDetailsPanel(categoryData, makeFieldsReadOnly = true) {
     if (!categoryFormEl) return;
+
     if (categoryData) {
         categoryTitleInputEl.value = categoryData.title || '';
         categoryCodeInputEl.value = categoryData.code || '';
         categoryDescriptionInputEl.value = categoryData.description || '';
+
         if (isEditingOrCreating && categoryFormEl.dataset.editingId) {
             populateParentCategorySelect(categoryData.id, categoryData.parent);
         } else {
             let parentDisplayText = 'Root';
-            if (isEditingOrCreating && categoryFormEl.dataset.parentIdForNew && categoryFormEl.dataset.parentIdForNew !== "null") {
+            if (
+                isEditingOrCreating &&
+                categoryFormEl.dataset.parentIdForNew && categoryFormEl.dataset.parentIdForNew !== "null"
+            ) {
+                parentDisplayText = getParentName(categoryFormEl.dataset.parentIdForNew);
+            } else if (isEditingOrCreating && categoryFormEl.dataset.parentIdForNew === "null") {
                 parentDisplayText = getParentName(categoryFormEl.dataset.parentIdForNew);
             } else if (!isEditingOrCreating && categoryData.parent) {
                 parentDisplayText = getParentName(categoryData.parent);
+            } else if (!isEditingOrCreating && !categoryData.parent) {
+                parentDisplayText = 'Root';
             }
             categoryParentDisplayEl.value = parentDisplayText;
         }
     } else {
         categoryFormEl.reset();
-        categoryParentDisplayEl.value = (isEditingOrCreating && categoryFormEl.dataset.parentIdForNew === "null") ? 'Root' : '';
+        categoryParentDisplayEl.value = (
+            isEditingOrCreating && categoryFormEl.dataset.parentIdForNew === "null") ? 'Root' : '';
+
         if (categoryParentSelectEl) {
-            const firstOption = categoryParentSelectEl.options[0];
             categoryParentSelectEl.innerHTML = '';
-            if(firstOption && (firstOption.value === "null" || firstOption.value === "")) categoryParentSelectEl.appendChild(firstOption);
+            const noParentOption = document.createElement('option');
+            noParentOption.value = "null";
+            noParentOption.textContent = "Root";
+            categoryParentSelectEl.appendChild(noParentOption);
             categoryParentSelectEl.value = "null";
         }
     }
-    [categoryTitleInputEl, categoryCodeInputEl, categoryDescriptionInputEl].forEach(input => input.readOnly = makeFieldsReadOnly);
+
+    [categoryTitleInputEl, categoryCodeInputEl, categoryDescriptionInputEl]
+        .forEach(input => input.readOnly = makeFieldsReadOnly);
     categoryParentDisplayEl.readOnly = true;
 }
 
 function populateParentCategorySelect(editingCategoryId, currentParentName) {
     if (!categoryParentSelectEl) return;
-    categoryParentSelectEl.innerHTML = ''; // Clear existing options
+    categoryParentSelectEl.innerHTML = '';
 
-    // Add the "Root" option
     const noParentOption = document.createElement('option');
-    noParentOption.value = "null"; // The value is the string "null"
+    noParentOption.value = "null";
     noParentOption.textContent = "Root";
     categoryParentSelectEl.appendChild(noParentOption);
 
-    // Add other categories as options
     allCategoriesFlat.forEach(cat => {
         if (String(cat.id) !== String(editingCategoryId)) {
             const option = document.createElement('option');
-            const catName = cat.title; // Assuming cat.title is the correct display name
-            option.value = catName;    // Value for actual categories is their name/title
+            const catName = cat.title || cat.name;
+            option.value = catName;
             option.textContent = catName;
-
             if (catName === currentParentName) {
-                option.selected = true; // This attempts to select an actual category by name
+                option.selected = true;
             }
             categoryParentSelectEl.appendChild(option);
         }
     });
 
-    // Refined logic for setting the selected value:
-    // Check if currentParentName signifies a root category in any of the expected ways.
     if (currentParentName === null ||
         currentParentName === undefined ||
         currentParentName === "" ||
         (typeof currentParentName === 'string' && currentParentName.toLowerCase() === "root")) {
-        // If it's a root category, set the select element's value to "null" (the string)
-        // to match the <option value="null">Root</option>.
         categoryParentSelectEl.value = "null";
     } else {
-        // Otherwise, currentParentName is an actual category name;
-        // set the select value to this name to select the corresponding category.
         categoryParentSelectEl.value = currentParentName;
     }
 }
@@ -176,20 +187,23 @@ function populateParentCategorySelect(editingCategoryId, currentParentName) {
 function setFormEditable(isNowEditable) {
     isEditingOrCreating = isNowEditable;
     const makeFieldsReadOnly = !isNowEditable;
-    [categoryTitleInputEl, categoryCodeInputEl, categoryDescriptionInputEl].forEach(input => input.readOnly = makeFieldsReadOnly);
+    [categoryTitleInputEl, categoryCodeInputEl, categoryDescriptionInputEl]
+        .forEach(input => input.readOnly = makeFieldsReadOnly);
     updateUIStates();
 }
 
 // --- DATA FETCHING & RENDERING ---
 async function loadCategories() {
     try {
-        const rawCategories = await getData('api/categories');
+        const rawCategories = await getData('api/categories')
+
         allCategoriesFlat = Array.isArray(rawCategories) ? rawCategories : [];
         categoryTree = buildCategoryTreeFromServer(allCategoriesFlat);
         renderCategoryTree();
     } catch (error) {
         console.error("Error loading categories:", error);
-        if (categoryTreeContainerEl) categoryTreeContainerEl.innerHTML = '<li>Error loading categories.</li>';
+        if (categoryTreeContainerEl) categoryTreeContainerEl.innerHTML = '' +
+            '<li>Error loading categories. Please try again.</li>';
     }
     updateUIStates();
 }
@@ -197,9 +211,12 @@ async function loadCategories() {
 function buildCategoryTreeFromServer(flatList, parentNameKey = null) {
     const children = [];
     if (!Array.isArray(flatList)) return children;
+
     for (const category of flatList) {
         const categoryName = category.title || category.name;
-        const effectiveParentName = (category.parent === "" || category.parent === "Root" || category.parent === null) ? null : category.parent;
+        const effectiveParentName = (category.parent === "" ||
+            category.parent === "Root" ||
+            category.parent === null) ? null : category.parent;
         if (effectiveParentName === parentNameKey) {
             const nestedChildren = buildCategoryTreeFromServer(flatList, categoryName);
             children.push({ ...category, children: nestedChildren, isExpanded: false });
@@ -211,22 +228,26 @@ function buildCategoryTreeFromServer(flatList, parentNameKey = null) {
 function renderCategoryTree() {
     if (!categoryTreeContainerEl) return;
     categoryTreeContainerEl.innerHTML = '';
+
     const createTreeItemRecursive = (category, level) => {
         const li = document.createElement('li');
         li.style.marginLeft = `${level * 10}px`;
         li.dataset.categoryId = category.id;
         li.classList.add('category-item');
+
         const contentWrapper = document.createElement('div');
         contentWrapper.classList.add('category-item-content');
         contentWrapper.addEventListener('click', () => { handleCategorySelect(category.id); });
         contentWrapper.style.cursor = 'pointer';
+
         let subUl = null;
         if (category.children && category.children.length > 0) {
             const toggler = document.createElement('span');
             toggler.textContent = category.isExpanded ? '[-] ' : '[+] ';
             toggler.classList.add('tree-toggler');
             toggler.addEventListener('click', (e) => {
-                e.stopPropagation(); category.isExpanded = !category.isExpanded;
+                e.stopPropagation();
+                category.isExpanded = !category.isExpanded;
                 toggler.textContent = category.isExpanded ? '[-] ' : '[+] ';
                 if (subUl) subUl.style.display = category.isExpanded ? 'block' : 'none';
             });
@@ -236,12 +257,17 @@ function renderCategoryTree() {
             placeholder.classList.add('tree-toggler-placeholder');
             contentWrapper.appendChild(placeholder);
         }
+
         const nameSpan = document.createElement('span');
         nameSpan.textContent = category.title || category.name || 'Unnamed Category';
         nameSpan.classList.add('category-name');
         contentWrapper.appendChild(nameSpan);
         li.appendChild(contentWrapper);
-        if (selectedCategory && category.id === selectedCategory.id) li.classList.add('selected');
+
+        if (selectedCategory && category.id === selectedCategory.id) {
+            li.classList.add('selected');
+        }
+
         if (category.children && category.children.length > 0) {
             subUl = document.createElement('ul');
             subUl.classList.add('nested-category-list');
@@ -251,14 +277,15 @@ function renderCategoryTree() {
         }
         return li;
     };
+
     if (categoryTree && categoryTree.length > 0) {
-        categoryTree.forEach(rootCategory => categoryTreeContainerEl.appendChild(createTreeItemRecursive(rootCategory, 0)));
+        categoryTree.forEach(rootCategory => categoryTreeContainerEl
+            .appendChild(createTreeItemRecursive(rootCategory, 0)));
     } else if (allCategoriesFlat.length > 0 && categoryTree.length === 0) {
-        categoryTreeContainerEl.innerHTML = '<li>No root categories found.</li>';
+        categoryTreeContainerEl.innerHTML = '<li>No root categories found. Check parent references in data.</li>';
     } else {
         categoryTreeContainerEl.innerHTML = '<li>No categories available.</li>';
     }
-    console.log("renderCategoryTree executed with tree:", categoryTree);
 }
 
 // --- CATEGORY SELECTION & HELPERS ---
@@ -274,7 +301,10 @@ function findCategoryInTree(id, categoriesToSearch = categoryTree) {
 }
 
 function getParentName(parentIdentifier) {
-    if (parentIdentifier === null || parentIdentifier === "null" || parentIdentifier === undefined || parentIdentifier === "") {
+    if (parentIdentifier === null ||
+        parentIdentifier === "null" ||
+        parentIdentifier === undefined ||
+        parentIdentifier === "") {
         return 'Root';
     }
     return parentIdentifier;
@@ -282,10 +312,11 @@ function getParentName(parentIdentifier) {
 
 function handleCategorySelect(categoryId) {
     if (isEditingOrCreating) return;
+
     const newlySelected = findCategoryInTree(categoryId);
     if (newlySelected) {
         selectedCategory = newlySelected;
-        if(categoryFormEl) {
+        if (categoryFormEl) {
             delete categoryFormEl.dataset.editingId;
             delete categoryFormEl.dataset.parentIdForNew;
         }
@@ -301,34 +332,55 @@ function handleCategorySelect(categoryId) {
 
 // --- EVENT HANDLERS ---
 function handleAddRootCategory() {
-    if (isEditingOrCreating) return; // Guard against re-entry if button not disabled fast enough
+    if (isEditingOrCreating) return;
 
     selectedCategory = null;
-    renderCategoryTree(); // Visually deselect in tree
+    renderCategoryTree();
 
     if (categoryFormEl) {
         categoryFormEl.dataset.parentIdForNew = "null";
         delete categoryFormEl.dataset.editingId;
     }
 
-    updateDetailsPanel({ parentName: 'Root' }, false); // Prepare form content for new root
-    setFormEditable(true); // Set mode, make fields writable, this calls updateUIStates
+    setFormEditable(true);
+    updateDetailsPanel({}, false);
 
-    if(categoryTitleInputEl) categoryTitleInputEl.focus();
+    if (categoryTitleInputEl) categoryTitleInputEl.focus();
+}
+
+function handleAddSubCategory() {
+    if (isEditingOrCreating) return;
+    if (!selectedCategory || !selectedCategory.id) {
+        alert("Please select a parent category first.");
+        return;
+    }
+
+    if (categoryFormEl) {
+        categoryFormEl.dataset.parentIdForNew = String(selectedCategory.id);
+        delete categoryFormEl.dataset.editingId;
+    }
+
+    setFormEditable(true);
+    updateDetailsPanel({}, false);
+
+    if (categoryParentDisplayEl) {
+        categoryParentDisplayEl.value = selectedCategory.title || selectedCategory.name || "Selected Parent";
+    }
+
+    if (categoryTitleInputEl) categoryTitleInputEl.focus();
 }
 
 function handleEditCategory() {
-    if (!selectedCategory || isEditingOrCreating) return;
+    if (!selectedCategory || !selectedCategory.id || isEditingOrCreating) return;
 
     if (categoryFormEl) {
         categoryFormEl.dataset.editingId = selectedCategory.id;
         delete categoryFormEl.dataset.parentIdForNew;
     }
+    setFormEditable(true);
+    updateDetailsPanel(selectedCategory, false);
 
-    setFormEditable(true); // Set mode, make fields writable, this calls updateUIStates
-    updateDetailsPanel(selectedCategory, false); // Populate form, including parent select
-
-    if(categoryTitleInputEl) categoryTitleInputEl.focus();
+    if (categoryTitleInputEl) categoryTitleInputEl.focus();
 }
 
 function handleCancelOperation() {
@@ -338,21 +390,16 @@ function handleCancelOperation() {
         delete categoryFormEl.dataset.editingId;
         delete categoryFormEl.dataset.parentIdForNew;
     }
-
-    setFormEditable(false); // Set mode to NOT editing, makes fields read-only, calls updateUIStates
+    setFormEditable(false);
 
     if (wasEditingId) {
-        // If we were editing, selectedCategory should still hold the category.
-        // If not, try to find it. This ensures the panel reverts to showing its details.
         selectedCategory = selectedCategory && String(selectedCategory.id) === String(wasEditingId) ?
             selectedCategory : findCategoryInTree(wasEditingId);
-    } else {
-        // If we were creating, selectedCategory should be null
-        selectedCategory = null;
     }
-    updateDetailsPanel(selectedCategory, true); // Restore/clear details panel
-    renderCategoryTree(); // Refresh tree selection highlight
-    updateUIStates(); // Ensure final UI state is correct
+
+    updateDetailsPanel(selectedCategory, true);
+    renderCategoryTree();
+    updateUIStates();
 }
 
 function handleSaveButton() {
@@ -363,9 +410,10 @@ function handleSaveButton() {
     const editingId = categoryFormEl.dataset.editingId;
 
     if (editingId) {
-        parentValueForDb = (categoryParentSelectEl.value === "null" || categoryParentSelectEl.value === "") ? null : categoryParentSelectEl.value;
+        parentValueForDb = (categoryParentSelectEl.value === "null" || categoryParentSelectEl.value === "")
+            ? null : categoryParentSelectEl.value;
     } else if (categoryFormEl.dataset.parentIdForNew) {
-        parentValueForDb = categoryFormEl.dataset.parentIdForNew === "null" ? null : categoryFormEl.dataset.parentIdForNew;
+        parentValueForDb = categoryFormEl.dataset.parentIdForNew === "null" ? null : categoryParentDisplayEl.value;
     }
 
     if (!categoryTitle || !code) {
@@ -373,12 +421,10 @@ function handleSaveButton() {
         return;
     }
     const dataToSend = { title: categoryTitle, parent: parentValueForDb, code: code, description: description };
-    console.log("Sending data to backend for save:", dataToSend, "Editing ID:", editingId);
 
     const afterSaveSuccess = (response) => {
-        console.log(`Category operation successful.`, response);
         alert('Category saved successfully!');
-        const previouslyEditingId = categoryFormEl.dataset.editingId;
+        const idBeingOperatedOn = editingId || (response && response.id);
 
         if (categoryFormEl) {
             delete categoryFormEl.dataset.editingId;
@@ -386,16 +432,12 @@ function handleSaveButton() {
         }
 
         loadCategories().then(() => {
-            if (previouslyEditingId && response && response.id === previouslyEditingId) { // Example if API returns updated/created object
-                selectedCategory = findCategoryInTree(response.id); // Re-select the (potentially updated) category
-            } else {
-                selectedCategory = null; // Or select the newly created one if ID is in response
-            }
+            selectedCategory = idBeingOperatedOn ? findCategoryInTree(idBeingOperatedOn) : null;
             updateDetailsPanel(selectedCategory, true);
-            setFormEditable(false); // This calls updateUIStates
+            setFormEditable(false);
         }).catch(err => {
-            console.error("Failed to reload categories after save", err);
-            selectedCategory = null; // Fallback
+            console.error("Failed to reload categories after save:", err);
+            selectedCategory = null;
             updateDetailsPanel(null, true);
             setFormEditable(false);
         });
@@ -407,9 +449,7 @@ function handleSaveButton() {
     };
 
     if (editingId) {
-        // alert("Edit (PUT) save not yet fully implemented with API call.");
-        putData(`api/update/${editingId}`, dataToSend).then(afterSaveSuccess).catch(afterSaveError)
-        // afterSaveSuccess({simulated: true, id: editingId}); // Simulate for UI reset
+        putData(`api/update/${editingId}`, dataToSend).then(afterSaveSuccess).catch(afterSaveError);
     } else {
         postData('api/createCategory', dataToSend).then(afterSaveSuccess).catch(afterSaveError);
     }
@@ -422,28 +462,26 @@ function handleDeleteCategory() {
     }
 
     const idToDelete = selectedCategory.id;
-    const categoryNameToDelete = selectedCategory.title;
+    const categoryNameToDelete = selectedCategory.title || selectedCategory.name || "this category";
 
-    if (!confirm(`Are you sure you want to delete the category "${categoryNameToDelete}"? This action cannot be undone.`)) {
+    if (!confirm(
+        `Are you sure you want to delete the category "${categoryNameToDelete}"? This action cannot be undone.`
+    )) {
         return;
     }
 
-    const afterDeleteSuccess = () => {
-        console.log('Delete successful.');
-        alert('Category has been deleted successfully.');
-
+    const afterDeleteSuccess = (response) => {
+        alert(`Category "${categoryNameToDelete}" has been deleted successfully.`);
         loadCategories().then(() => {
             selectedCategory = null;
-
-            updateDetailsPanel(null, true); // Prepare form content for new root
             setFormEditable(false);
-
+            updateDetailsPanel(null, true);
         });
-    }
+    };
 
     const afterDeleteError = (error) => {
-        console.error('There was a problem deleting the category:', error);
-        alert(`Error deleting category: ${error.message || 'Unknown error.'}`);
+        console.error(`Error deleting category "${categoryNameToDelete}":`, error);
+        alert(`Error deleting category "${categoryNameToDelete}": ${error.message || 'Unknown error.'}`);
     };
 
     deleteData(`api/delete/${idToDelete}`)
@@ -472,6 +510,7 @@ export function showProductCategories() {
     categoryTreeContainerEl = document.createElement('ul');
     categoryTreeContainerEl.id = 'pc_categoryTreeRoot';
     categoryTreeContainerEl.className = 'category-tree';
+    categoryTreeContainerEl.innerHTML = 'Loading data...';
     categoryTreePanelEl.appendChild(categoryTreeContainerEl);
 
     const treeActionsDiv = document.createElement('div');
@@ -480,7 +519,7 @@ export function showProductCategories() {
     addRootCategoryBtnEl.addEventListener('click', handleAddRootCategory);
 
     addSubCategoryBtnEl = createButton('pc_addSubCategoryBtn', 'Add subcategory');
-    // addSubCategoryBtnEl.addEventListener('click', handleAddSubCategory); // To be implemented
+    addSubCategoryBtnEl.addEventListener('click', handleAddSubCategory);
 
     treeActionsDiv.appendChild(addRootCategoryBtnEl);
     treeActionsDiv.appendChild(addSubCategoryBtnEl);
@@ -492,23 +531,24 @@ export function showProductCategories() {
     categoriesContainer.appendChild(categoryDetailsPanelEl);
 
     h3DetailsEl = document.createElement('h3');
-    // Initial text set by updateUIStates
     categoryDetailsPanelEl.appendChild(h3DetailsEl);
 
     categoryFormEl = document.createElement('form');
     categoryFormEl.id = 'pc_categoryForm';
+    categoryFormEl.addEventListener('submit', (e) => e.preventDefault());
     categoryDetailsPanelEl.appendChild(categoryFormEl);
 
-    // Form Groups (Title, Code, Description first)
-    const titleGroup = createFormGroup('Title:', 'pc_categoryTitle', 'title');
+    // Form Groups
+    const titleGroup = createFormGroup(
+        'Title:', 'pc_categoryTitle', 'title'
+    );
     categoryTitleInputEl = titleGroup.inputEl;
     categoryFormEl.appendChild(titleGroup.groupDiv);
 
-    // Parent Category Form Group (Label, Text Input for display, Select for edit)
     const parentFormGroupDiv = document.createElement('div');
     parentFormGroupDiv.className = 'form-group';
     const parentLabel = document.createElement('label');
-    parentLabel.setAttribute('for', 'pc_categoryParentDisplay'); // Points to the visible field
+    parentLabel.setAttribute('for', 'pc_categoryParentDisplay');
     parentLabel.textContent = 'Parent category:';
     parentFormGroupDiv.appendChild(parentLabel);
 
@@ -522,7 +562,7 @@ export function showProductCategories() {
     categoryParentSelectEl = document.createElement('select');
     categoryParentSelectEl.id = 'pc_categoryParentSelect';
     categoryParentSelectEl.name = 'parentSelect';
-    categoryParentSelectEl.style.display = 'none'; // Initially hidden
+    categoryParentSelectEl.style.display = 'none';
     const noParentOption = document.createElement('option');
     noParentOption.value = "null";
     noParentOption.textContent = "Root";
@@ -530,19 +570,21 @@ export function showProductCategories() {
     parentFormGroupDiv.appendChild(categoryParentSelectEl);
     categoryFormEl.appendChild(parentFormGroupDiv);
 
-    const codeGroup = createFormGroup('Code:', 'pc_categoryCode', 'code');
+    const codeGroup = createFormGroup(
+        'Code:', 'pc_categoryCode', 'code'
+    );
     categoryCodeInputEl = codeGroup.inputEl;
     categoryFormEl.appendChild(codeGroup.groupDiv);
 
-    const descriptionGroup = createFormGroup('Description:', 'pc_categoryDescription', 'description', 'text', true);
+    const descriptionGroup = createFormGroup(
+        'Description:', 'pc_categoryDescription', 'description', 'text', true
+    );
     categoryDescriptionInputEl = descriptionGroup.inputEl;
     categoryFormEl.appendChild(descriptionGroup.groupDiv);
 
     // Action Buttons for the Details Form
     const detailsActionsDiv = document.createElement('div');
     detailsActionsDiv.className = 'details-actions';
-    // NOTE: The CSS class '.details-actions' is expected to set 'display: flex'.
-    // If it also has 'justify-content: space-between', that's fine.
     categoryFormEl.appendChild(detailsActionsDiv);
 
     deleteCategoryBtnEl = createButton('pc_deleteCategoryBtn', 'Delete');
@@ -550,14 +592,8 @@ export function showProductCategories() {
 
     const actionsRightGroup = document.createElement('div');
     actionsRightGroup.className = 'actions-right';
-    // ---- MODIFICATION START ----
-    // Ensure this group is a flex container (as per CSS, but good for robustness)
-    // and push it to the right using margin-left: auto.
-    // The CSS class '.actions-right' is expected to set 'display: flex' and 'gap: 5px'.
-    actionsRightGroup.style.display = 'flex'; // Reinforces the CSS for .actions-right.
-    actionsRightGroup.style.marginLeft = 'auto'; // This pushes the group to the right.
-    // The 'gap' between buttons within this group is handled by the CSS rule for .actions-right (gap: 5px).
-    // ---- MODIFICATION END ----
+    actionsRightGroup.style.display = 'flex';
+    actionsRightGroup.style.marginLeft = 'auto';
 
     editCategoryBtnEl = createButton('pc_editCategoryBtn', 'Edit');
     editCategoryBtnEl.addEventListener('click', handleEditCategory);
@@ -575,12 +611,12 @@ export function showProductCategories() {
     detailsActionsDiv.appendChild(deleteCategoryBtnEl);
     detailsActionsDiv.appendChild(actionsRightGroup);
 
+    // Initial Page Setup
     loadCategories().catch(err => {
         console.error('Error during initial category load:', err);
-        if(categoryTreeContainerEl) categoryTreeContainerEl.innerHTML = "<li>Failed to load categories.</li>";
+        if(categoryTreeContainerEl) categoryTreeContainerEl.innerHTML = "" +
+            "<li>Failed to load categories. Check API and network.</li>";
     });
-
-    allCategoriesFlat.forEach(cat => categoryParentSelectEl.appendChild(cat));
     selectedCategory = null;
     isEditingOrCreating = false;
     updateDetailsPanel(null, true);
