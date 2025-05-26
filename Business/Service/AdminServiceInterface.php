@@ -11,9 +11,16 @@ interface AdminServiceInterface
      *
      * @param Admin $admin
      *
-     * @return bool
+     * @return int
      */
-    public function authenticate(Admin $admin): bool;
+    public function authenticate(Admin $admin): int;
+
+    public function handleLoginAndCreateAuthToken(int $adminId): array;
+
+    public function validateAuthToken(string $selector, string $validatorFromCookie): ?int;
+
+    public function handleLogout(string $selector): bool;
+
 
     /**
      * Checks if username is valid

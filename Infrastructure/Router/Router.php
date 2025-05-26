@@ -68,7 +68,7 @@ class Router
     /**
      * Dispatches the provided request
      *
-     * @param Request $request \
+     * @param Request $request
      *
      * @throws Exception
      */

@@ -32,7 +32,7 @@ class AdminRepository
      *
      * @return bool
      */
-    public function authenticate(Admin $admin): bool
+    public function authenticate(Admin $admin): int
     {
         $plainUsername = $admin->getUsername();
         $plainPassword = $admin->getPassword();
@@ -43,10 +43,10 @@ class AdminRepository
                 $decryptedUsername = $this->encryptor->decrypt($adminUser->username);
                 if ($decryptedUsername === $plainUsername) {
                     if (!password_verify($plainPassword, $adminUser->password)) {
-                        return false;
+                        return -1;
                     }
 
-                    return true;
+                    return $adminUser->id;
                 }
             } catch (DecryptException $e) {
                 continue;

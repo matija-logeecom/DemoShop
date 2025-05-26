@@ -18,6 +18,7 @@ use DemoShop\Business\Service\AdminServiceInterface;
 use DemoShop\Business\Service\AdminService;
 use DemoShop\Business\Encryption\EncryptorInterface;
 use DemoShop\Data\Repository\AdminRepository;
+use DemoShop\Data\Repository\AdminAuthTokenRepository;
 use Dotenv\Dotenv;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use Exception;
@@ -35,9 +36,9 @@ class Bootstrap
      */
     public static function init(): void
     {
-        if (!SessionManager::getInstance()->has('adminLoggedIn')) {
-            SessionManager::getInstance()->set('adminLoggedIn', false);
-        }
+//        if (!SessionManager::getInstance()->has('adminLoggedIn')) {
+//            SessionManager::getInstance()->set('adminLoggedIn', false);
+//        }
 
         $dotenv = Dotenv::createImmutable(__DIR__);
         $dotenv->load();
@@ -67,9 +68,13 @@ class Bootstrap
     private static function registerRepositories(): void
     {
         ServiceRegistry::set(AdminRepository::class,
-            new AdminRepository(ServiceRegistry::get(EncryptorInterface::class)));
+            new AdminRepository(ServiceRegistry::get(EncryptorInterface::class))
+        );
         ServiceRegistry::set(CategoryRepository::class,
             new CategoryRepository()
+        );
+        ServiceRegistry::set(AdminAuthTokenRepository::class,
+            new AdminAuthTokenRepository()
         );
     }
 
@@ -84,6 +89,7 @@ class Bootstrap
             new AdminService(
                 ServiceRegistry::get(AdminRepository::class),
                 ServiceRegistry::get(CategoryRepository::class),
+                ServiceRegistry::get(AdminAuthTokenRepository::class)
             ));
     }
 
@@ -135,11 +141,40 @@ class Bootstrap
                 [$adminController, 'sendLoginInfo'],
                 'adminLoginPipeline'
             );
-            $router->add('GET', '/api/dashboard', [$adminController, 'dashboardData']);
-            $router->add('POST', '/api/createCategory', [$adminController, 'createCategory']);
-            $router->add('GET', '/api/categories', [$adminController, 'getCategories']);
-            $router->add('PUT', '/api/update/{id}', [$adminController, 'updateCategory']);
-            $router->add('DELETE', '/api/delete/{id}', [$adminController, 'deleteCategory']);
+            $router->add(
+                'GET',
+                '/logout',
+                [$adminController, 'logout']
+            );
+            $router->add(
+                'GET',
+                '/api/dashboard',
+                [$adminController, 'dashboardData'],
+                'adminAuthorizePipeline'
+            );
+            $router->add(
+                'POST',
+                '/api/createCategory',
+                [$adminController, 'createCategory'],
+                'adminAuthorizePipeline'
+            );
+            $router->add(
+                'GET',
+                '/api/categories',
+                [$adminController, 'getCategories'],
+                'adminAuthorizePipeline'
+            );
+            $router->add(
+                'PUT',
+                '/api/update/{id}',
+                [$adminController, 'updateCategory'],
+                'adminAuthorizePipeline'
+            );
+            $router->add('DELETE',
+                '/api/delete/{id}',
+                [$adminController, 'deleteCategory'],
+                'adminAuthorizePipeline'
+            );
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
         }
@@ -196,7 +231,9 @@ class Bootstrap
         );
 
         $middleware
-            ->linkWith(new AlreadyLoggedInMiddleware());
+            ->linkWith(new AlreadyLoggedInMiddleware(
+                ServiceRegistry::get(AdminServiceInterface::class)
+            ));
         ServiceRegistry::set('adminLoginPipeline', $middleware);
     }
 
@@ -207,7 +244,9 @@ class Bootstrap
      */
     private static function registerAuthorizeMiddleware(): void
     {
-        $middleware = new AuthorizeMiddleware();
+        $middleware = new AuthorizeMiddleware(
+            ServiceRegistry::get(AdminServiceInterface::class)
+        );
         ServiceRegistry::set('adminAuthorizePipeline', $middleware);
     }
 
@@ -218,7 +257,9 @@ class Bootstrap
      */
     private static function registerAlreadyLoggedInMiddleware(): void
     {
-        $middleware = new AlreadyLoggedInMiddleware();
+        $middleware = new AlreadyLoggedInMiddleware(
+            ServiceRegistry::get(AdminServiceInterface::class)
+        );
         ServiceRegistry::set('adminCheckLoginPipeline', $middleware);
     }
 }

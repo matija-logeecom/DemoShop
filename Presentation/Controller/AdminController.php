@@ -3,7 +3,7 @@
 namespace DemoShop\Presentation\Controller;
 
 use DemoShop\Infrastructure\Response\JsonResponse;
-use DemoShop\Infrastructure\Session\SessionManager;
+//use DemoShop\Infrastructure\Session\SessionManager;
 use DemoShop\Business\Model\Admin;
 use DemoShop\Infrastructure\Response\RedirectionResponse;
 use DemoShop\Infrastructure\Request\Request;
@@ -19,6 +19,7 @@ use Exception;
 class AdminController
 {
     private AdminServiceInterface $userService;
+    private const AUTH_COOKIE_NAME = 'DEMO_SHOP_AUTH';
 
     /**
      * Constructs Admin Controller instance
@@ -83,17 +84,60 @@ class AdminController
         }
 
         $admin = new Admin($username, $password);
-        if (!$this->userService->authenticate($admin)) {
+        $adminId = $this->userService->authenticate($admin);
+        if ($adminId > 0) {
+            $tokenData = $this->userService->handleLoginAndCreateAuthToken($adminId);
+
+            if (!empty($tokenData) && isset($tokenData['selector']) && isset($tokenData['validator'])) {
+                $cookieValue = "{$tokenData['selector']}:{$tokenData['validator']}";
+                $expiryTime = time() + (86400 * 30);
+                setcookie(self::AUTH_COOKIE_NAME, $cookieValue, [
+                    'expires' => $expiryTime,
+                    'path' => '/',
+                    'domain' => '', // Current domain
+                    'secure' => $request->getServer()['HTTPS'] ?? false, // Set to true if served over HTTPS
+                    'httponly' => true,
+                    'samesite' => 'Lax' // Or 'Strict'
+                ]);
+                return new RedirectionResponse('/admin');
+            } else {
+                $request->setRouteParams([
+                    'username' => $username,
+                    'passwordError' => 'Username and password do not match.',
+                ]);
+
+                return $this->loginPage($request);
+            }
+        } else {
             $request->setRouteParams([
                 'username' => $username,
                 'passwordError' => 'Username and password do not match.',
             ]);
-
             return $this->loginPage($request);
         }
+    }
 
-        SessionManager::getInstance()->set('adminLoggedIn', true);
-        return new RedirectionResponse('/admin');
+    public function logout(Request $request): Response
+    {
+        if (isset($_COOKIE[self::AUTH_COOKIE_NAME])) {
+            $cookieValue = $_COOKIE[self::AUTH_COOKIE_NAME];
+            $parts = explode(':', $cookieValue);
+            if (count($parts) === 2) {
+                $selector = $parts[0];
+                $this->userService->handleLogout($selector);
+            }
+        }
+
+        setcookie(self::AUTH_COOKIE_NAME, '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $request->getServer()['HTTPS'] ?? false,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+
+        return new RedirectionResponse('/login');
     }
 
     /**
