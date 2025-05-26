@@ -41,4 +41,8 @@ interface AdminServiceInterface
      * @return array
      */
     public function getDashboardData(): array;
+
+    public function updateCategory(array $data): bool;
+
+    public function deleteCategory(int $id): bool;
 }

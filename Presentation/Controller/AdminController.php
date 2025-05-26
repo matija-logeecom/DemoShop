@@ -131,4 +131,30 @@ class AdminController
             return JsonResponse::createInternalServerError();
         }
     }
+
+    public function updateCategory(Request $request): Response
+    {
+        $requestBody = $request->getBody();
+        $requestBody['id'] = $request->getRouteParam('id');
+        $success = $this->userService->updateCategory($requestBody);
+
+        if (!$success) {
+            return HtmlResponse::createInternalServerError();
+        }
+
+        return new JsonResponse(['id' => $requestBody['id']], 200);
+    }
+
+    public function deleteCategory(Request $request): Response
+    {
+        $idToDelete = $request->getRouteParam('id');
+        $success = $this->userService->deleteCategory($idToDelete);
+
+        if (!$success) {
+            return HtmlResponse::createInternalServerError();
+        }
+
+        return new JsonResponse(['id' => $idToDelete], 200);
+
+    }
 }

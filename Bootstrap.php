@@ -138,6 +138,8 @@ class Bootstrap
             $router->add('GET', '/api/dashboard', [$adminController, 'dashboardData']);
             $router->add('POST', '/api/createCategory', [$adminController, 'createCategory']);
             $router->add('GET', '/api/categories', [$adminController, 'getCategories']);
+            $router->add('PUT', '/api/update/{id}', [$adminController, 'updateCategory']);
+            $router->add('DELETE', '/api/delete/{id}', [$adminController, 'deleteCategory']);
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
         }

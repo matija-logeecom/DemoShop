@@ -3,6 +3,8 @@
 namespace DemoShop\Data\Repository;
 
 use DemoShop\Data\Model\Category;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class CategoryRepository
 {
@@ -24,5 +26,65 @@ class CategoryRepository
         return Category::orderBy('title')
             ->get()
             ->toArray();
+    }
+
+    public function updateCategory(array $data): bool
+    {
+        $id = $data['id'];
+
+        try {
+            $category = Category::findOrFail($id);
+
+            $oldTitle = $category->title;
+
+            $category->title = $data['title'];
+            $category->parent = $data['parent'];
+            $category->code = $data['code'];
+            $category->description = $data['description'];
+
+            $category->save();
+
+            if ($oldTitle !== $category->title) {
+                Category::where('parent', $oldTitle)
+                    ->update(['parent' => $category->title]);
+            }
+
+            return true;
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return false;
+        }
+    }
+
+    public function deleteCategory(int $id): bool
+    {
+        try {
+            $categoryToDelete = Category::findOrFail($id);
+            $parentDeleted = $categoryToDelete->title;
+
+            $this->deleteDescendants($parentDeleted);
+            $categoryToDelete->delete();
+
+            return true;
+        } catch (Exception $e) {
+            echo $e->getMessage();
+            return false;
+        }
+    }
+
+    private function deleteDescendants(string $parent): void
+    {
+        $children = Category::where('parent', $parent)
+            ->get();
+
+        if ($children->isEmpty()) {
+            return;
+        }
+
+        foreach ($children as $child) {
+            $this->deleteDescendants($child->title);
+
+            $child->delete();
+        }
     }
 }

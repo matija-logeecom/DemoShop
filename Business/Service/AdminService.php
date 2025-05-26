@@ -59,6 +59,16 @@ class AdminService implements AdminServiceInterface
         return $this->categoryRepository->getCategories();
     }
 
+    public function updateCategory(array $data): bool
+    {
+        return $this->categoryRepository->updateCategory($data);
+    }
+
+    public function deleteCategory(int $id): bool
+    {
+        return $this->categoryRepository->deleteCategory($id);
+    }
+
     /**
      * @inheritDoc
      */

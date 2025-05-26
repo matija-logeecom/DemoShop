@@ -147,6 +147,30 @@ button.admin-button:active,
     transform: translateY(0);
 }
 
+/* Styles for disabled buttons */
+button.admin-button:disabled,
+#app-root button:disabled {
+    background-color: #adb5bd; /* Medium gray */
+    color: #6c757d;           /* Darker gray text */
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.65;
+}
+
+button.admin-button:disabled:hover,
+#app-root button:disabled:hover {
+    background-color: #adb5bd; /* Keep disabled background on hover */
+    transform: none;
+}
+
+button.admin-button:disabled:active,
+#app-root button:disabled:active {
+    background-color: #adb5bd; /* Keep disabled background on active */
+    transform: none;
+}
+
+
 .admin-header {
     background-color: #343a40;
     color: #ffffff;
@@ -247,11 +271,15 @@ button.admin-button:active,
 .categories-container {
     display: flex;
     gap: 20px;
+    /* align-items: flex-start; */ /* Uncomment this if you DON'T want panels to be equal height */
 }
 
 .category-tree-panel {
     flex: 1;
     /* .content-panel styles will apply as this class is added in JS */
+    display: flex;             /* Make this a flex container */
+    flex-direction: column;    /* Stack its children (tree and actions) vertically */
+    /* min-height: 300px; */  /* Optional: set a minimum height for the panel */
 }
 
 .category-details-panel {
@@ -259,21 +287,30 @@ button.admin-button:active,
     /* .content-panel styles will apply as this class is added in JS */
 }
 
-.category-tree {
+.category-tree { /* This is the UL element */
     list-style-type: none;
     padding-left: 0;
+    flex-grow: 1;         /* Allows the tree list to take available vertical space */
+    overflow-y: auto;     /* Adds scrollbar if tree content is too tall */
+    margin-bottom: 10px;  /* Space between tree and action buttons */
+    /* border: 1px solid #eee; */ /* Optional: for visual debugging */
+    /* min-height: 100px; */ /* Optional: ensure tree area has some min height */
 }
 
-.tree-actions,
-#pc_categoryForm .details-actions { /* Combined .details-actions from form here */
-    margin-top: 15px;
-}
-
-#pc_categoryForm .details-actions { /* Specific styling if needed for form buttons container */
+.tree-actions {
+    margin-top: 15px; /* Existing */
     display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
+    justify-content: space-between; /* This will push items to opposite ends */
+    align-items: center; /* Optional: vertically align if buttons have different heights */
 }
+
+#pc_categoryForm .details-actions {
+    display: flex;
+    justify-content: space-between; /* Pushes Delete to left, and actions-right group to right */
+    align-items: center;          /* Vertically align items */
+    margin-top: 20px;             /* Or your preferred margin */
+}
+
 
 /* Styles for each label-input pair group */
 #pc_categoryForm .form-group {
@@ -295,7 +332,6 @@ button.admin-button:active,
 #pc_categoryForm .form-group textarea {
     flex-grow: 1;
     width: 100%;
-    /* Inherits padding, border etc. from general #app-root input styles */
 }
 
 #pc_categoryForm .form-group textarea {
@@ -303,31 +339,33 @@ button.admin-button:active,
     resize: vertical;
 }
 
+#pc_categoryForm .actions-right {
+    display: flex;
+    gap: 5px; /* Or use margin-right on individual buttons if preferred */
+}
+
 /* Tree item styling */
 .category-tree li {
     margin-bottom: 3px;
     padding: 0;
     list-style-type: none;
-    cursor: default; /* Click is on category-item-content */
+    cursor: default;
     border-radius: 0;
-    background-color: transparent !important; /* Ensure LI itself has no background from other rules */
+    background-color: transparent !important;
 }
 
 .category-item-content {
     padding: 5px 8px;
     border-radius: 4px;
-    color: #333;        /* Default text color */
-    background-color: transparent; /* Default background for the content div */
-    /* cursor: pointer; is set by JS on this element */
+    color: #333;
+    background-color: transparent;
 }
 
-/* Hover state ONLY for the .category-item-content of a non-selected li */
 .category-tree li:not(.selected) > .category-item-content:hover {
     background-color: #f0f0f0;
-    color: #333; /* Keep text color default */
+    color: #333;
 }
 
-/* Selected state for .category-item-content */
 .category-tree li.selected > .category-item-content {
     background-color: #007bff;
     color: white;
@@ -338,12 +376,12 @@ button.admin-button:active,
     display: inline-block;
     width: 22px;
     height: 22px;
-    line-height: 20px; /* Adjust if +/- are not centered */
+    line-height: 20px;
     text-align: center;
     font-family: monospace;
     font-weight: bold;
     color: white;
-    background-color: #9dacbb; /* Blue background */
+    background-color: #007bff;
     border-radius: 4px;
     margin-right: 8px;
     cursor: pointer;
@@ -352,26 +390,41 @@ button.admin-button:active,
 }
 
 .tree-toggler:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
 }
 
-/* Ensure toggler within a selected item remains styled correctly if needed,
-   though current .tree-toggler sets white color which is fine with its blue background. */
 .category-tree li.selected > .category-item-content .tree-toggler {
     /* color: white; // Already white due to .tree-toggler rule */
-    /* background-color: #0056b3; // Optionally make it darker if parent is selected */
 }
 
 .tree-toggler-placeholder {
     display: inline-block;
-    width: 22px;   /* Match toggler width */
-    height: 22px;  /* Match toggler height */
-    margin-right: 8px; /* Match toggler margin-right */
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
 }
 
-.category-tree ul, /* General nested ULs, including .nested-category-list */
+.category-tree ul,
 .nested-category-list {
     list-style-type: none;
-    padding-left: 0; /* Indentation is handled by child LI's margin-left in JS */
-    margin-top: 2px; /* Optional: small space above a sub-list */
+    padding-left: 0;
+    margin-top: 2px;
+}
+
+#pc_categoryForm .form-group select {
+    flex-grow: 1;
+    width: 100%;
+    padding: 8px 12px; /* Match your text inputs */
+    border: 1px solid #ddd; /* Match your text inputs */
+    border-radius: 6px; /* Match your text inputs */
+    font-size: 0.95rem; /* Match your text inputs */
+    color: #333; /* Match your text inputs */
+    box-sizing: border-box;
+    background-color: #fff; /* Ensure background for select */
+}
+
+#pc_categoryForm .form-group select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
