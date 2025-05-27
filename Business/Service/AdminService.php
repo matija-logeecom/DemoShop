@@ -3,11 +3,13 @@
 namespace DemoShop\Business\Service;
 
 use Carbon\Carbon;
+use DemoShop\Business\Encryption\EncryptorInterface;
 use DemoShop\Business\Model\Admin;
 use DemoShop\Data\Repository\AdminAuthTokenRepository;
 use DemoShop\Data\Repository\AdminRepository;
 use DemoShop\Data\Repository\CategoryRepository;
 use Exception;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 /*
  * Stores business logic for admins
@@ -18,6 +20,7 @@ class AdminService implements AdminServiceInterface
     private AdminRepository $repository;
     private CategoryRepository $categoryRepository;
     private AdminAuthTokenRepository $adminAuthTokenRepository;
+    private EncryptorInterface $encryptor;
 
     /**
      * Constructs Admin Service instance
@@ -25,13 +28,16 @@ class AdminService implements AdminServiceInterface
      * @param AdminRepository $repository
      * @param CategoryRepository $categoryRepository
      */
-    public function __construct(AdminRepository $repository,
-                                CategoryRepository $categoryRepository,
-                                AdminAuthTokenRepository $adminAuthTokenRepository)
+    public function __construct(
+        AdminRepository          $repository,
+        CategoryRepository       $categoryRepository,
+        AdminAuthTokenRepository $adminAuthTokenRepository,
+        EncryptorInterface       $encryptor)
     {
         $this->repository = $repository;
         $this->categoryRepository = $categoryRepository;
         $this->adminAuthTokenRepository = $adminAuthTokenRepository;
+        $this->encryptor = $encryptor;
     }
 
     /**
@@ -86,6 +92,44 @@ class AdminService implements AdminServiceInterface
     public function handleLogout(string $selector): bool
     {
         return $this->adminAuthTokenRepository->deleteTokenBySelector($selector);
+    }
+
+    public function createEncryptedSessionPayload(int $adminId): ?string
+    {
+        try {
+            $sessionExpiresAtTimestamp = Carbon::now()->addHours(2)->timestamp;
+            $payload = [
+                'sub' => $adminId,
+                'exp' => $sessionExpiresAtTimestamp,
+            ];
+            $serializedPayload = json_encode($payload);
+            return $this->encryptor->encrypt($serializedPayload, true);
+        } catch (Exception $e) {
+            echo $e->getMessage();
+
+            return null;
+        }
+    }
+
+    public function validateEncryptedSessionPayload(string $encryptedPayload): ?int
+    {
+        try {
+            $decryptedPayload = $this->encryptor->decrypt($encryptedPayload);
+            $payload = json_decode($decryptedPayload, true);
+
+            if (json_last_error() === JSON_ERROR_NONE &&
+                isset($payload['sub']) &&
+                isset($payload['exp']) &&
+                is_numeric($payload['exp']) &&
+                $payload['exp'] > Carbon::now()->timestamp
+            ) {
+                return (int)$payload['sub'];
+            }
+        } catch (Exception $e) {
+            echo $e->getMessage();
+        }
+
+        return null;
     }
 
     /**

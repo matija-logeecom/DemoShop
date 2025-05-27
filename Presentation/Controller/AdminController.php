@@ -20,6 +20,8 @@ class AdminController
 {
     private AdminServiceInterface $userService;
     private const AUTH_COOKIE_NAME = 'DEMO_SHOP_AUTH';
+    private const DB_TOKEN_PREFIX = 'db_token:';
+    private const SESSION_PAYLOAD_PREFIX = 'session_payload:';
 
     /**
      * Constructs Admin Controller instance
@@ -86,45 +88,61 @@ class AdminController
         $admin = new Admin($username, $password);
         $adminId = $this->userService->authenticate($admin);
         if ($adminId > 0) {
-            $tokenData = $this->userService->handleLoginAndCreateAuthToken($adminId);
+            $keepLoggedIn = !empty($request->getBody()['keep_logged_in']);
 
-            if (!empty($tokenData) && isset($tokenData['selector']) && isset($tokenData['validator'])) {
-                $cookieValue = "{$tokenData['selector']}:{$tokenData['validator']}";
-                $expiryTime = time() + (86400 * 30);
+            $cookieValue = null;
+            $cookieExpiry = 0;
+
+            if ($keepLoggedIn) {
+                $tokenData = $this->userService->handleLoginAndCreateAuthToken($adminId);
+                if (!empty($tokenData) && isset($tokenData['selector']) && isset($tokenData['validator'])) {
+                    $cookieValue = self::DB_TOKEN_PREFIX . "{$tokenData['selector']}:{$tokenData['validator']}";
+                    $cookieExpiry = time() + (86400 * 30);
+                }
+            }
+
+            if (!$keepLoggedIn) {
+                $encryptedPayload = $this->userService->createEncryptedSessionPayload($adminId);
+                if ($encryptedPayload !== null) {
+                    $cookieValue = self::SESSION_PAYLOAD_PREFIX . $encryptedPayload;
+                }
+            }
+
+            if ($cookieValue !== null) {
                 setcookie(self::AUTH_COOKIE_NAME, $cookieValue, [
-                    'expires' => $expiryTime,
+                    'expires' => $cookieExpiry,
                     'path' => '/',
                     'domain' => '', // Current domain
                     'secure' => $request->getServer()['HTTPS'] ?? false, // Set to true if served over HTTPS
                     'httponly' => true,
                     'samesite' => 'Lax' // Or 'Strict'
                 ]);
-                return new RedirectionResponse('/admin');
-            } else {
-                $request->setRouteParams([
-                    'username' => $username,
-                    'passwordError' => 'Username and password do not match.',
-                ]);
 
-                return $this->loginPage($request);
+                return new RedirectionResponse('/admin');
             }
-        } else {
-            $request->setRouteParams([
-                'username' => $username,
-                'passwordError' => 'Username and password do not match.',
-            ]);
-            return $this->loginPage($request);
         }
+
+        $request->setRouteParams([
+            'username' => $username,
+            'passwordError' => 'Username and password do not match.',
+        ]);
+
+        return $this->loginPage($request);
     }
 
     public function logout(Request $request): Response
     {
         if (isset($_COOKIE[self::AUTH_COOKIE_NAME])) {
             $cookieValue = $_COOKIE[self::AUTH_COOKIE_NAME];
-            $parts = explode(':', $cookieValue);
-            if (count($parts) === 2) {
-                $selector = $parts[0];
-                $this->userService->handleLogout($selector);
+
+            // When stored in DB
+            if (str_starts_with($cookieValue, self::DB_TOKEN_PREFIX)) {
+                $tokenString = substr($cookieValue, strlen(self::DB_TOKEN_PREFIX));
+                $tokenParts = explode(':', $tokenString);
+                if (count($tokenParts) === 2) {
+                    $selector = $tokenParts[0];
+                    $this->userService->handleLogout($selector);
+                }
             }
         }
 

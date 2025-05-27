@@ -21,6 +21,10 @@ interface AdminServiceInterface
 
     public function handleLogout(string $selector): bool;
 
+    public function createEncryptedSessionPayload(int $adminId): ?string;
+
+    public function validateEncryptedSessionPayload(string $encryptedPayload): ?int;
+
 
     /**
      * Checks if username is valid

@@ -428,3 +428,52 @@ button.admin-button:disabled:active,
     border-color: #007bff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
+
+.sidebar {
+    /* width, background-color, padding, border-right are likely already defined in your existing admin.css */
+    /* Ensure these are present or adjust as needed: */
+    display: flex;
+    flex-direction: column; /* Stack children (nav, logout-container) vertically */
+    /* padding: 20px 15px; */ /* Example, adjust if you have existing padding */
+}
+
+/*
+    Target the main navigation element within the sidebar.
+    Allow this navigation group to grow and take up available vertical space.
+    This pushes the .logout-container to the bottom.
+*/
+.sidebar nav#admin-nav { /* Targeting the specific nav element by its ID */
+    flex-grow: 1;
+    /* Your existing styles for .sidebar nav ul, .sidebar nav li a will apply to the links within */
+}
+
+/*
+    Container for the logout link.
+    This will be pushed to the bottom by the flex-grow property on the nav above.
+*/
+.logout-container {
+    margin-top: 20px;          /* Adds some space above the separator line */
+    padding-top: 15px;         /* Adds space between the separator line and the logout link */
+    border-top: 1px solid #cccccc; /* Creates the visual separator line */
+    /* text-align: center; */ /* If you want the link itself centered, apply to .logout-link */
+}
+
+/*
+    Styling for the logout link itself.
+*/
+.logout-container a { /* Targeting the <a> tag directly within .logout-container */
+    display: block;         /* Make it a block element to take full width and allow padding */
+    padding: 10px 15px;     /* Consistent padding with other navigation links */
+    text-decoration: none;
+    background-color: #c9302c; /* Default red background */
+    color: white;           /* Default white text */
+    font-weight: 500;       /* Or match your other nav link font-weight */
+    border-radius: 6px;     /* Consistent with other interactive elements */
+    text-align: center;     /* Center the text within the link/button area */
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.logout-container a:hover {
+    background-color: #a92723; /* Slightly darker red on hover */
+    color: white;           /* Keep text white on hover */
+}

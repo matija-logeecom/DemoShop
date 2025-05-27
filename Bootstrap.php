@@ -89,7 +89,8 @@ class Bootstrap
             new AdminService(
                 ServiceRegistry::get(AdminRepository::class),
                 ServiceRegistry::get(CategoryRepository::class),
-                ServiceRegistry::get(AdminAuthTokenRepository::class)
+                ServiceRegistry::get(AdminAuthTokenRepository::class),
+                ServiceRegistry::get(EncryptorInterface::class)
             ));
     }
 
