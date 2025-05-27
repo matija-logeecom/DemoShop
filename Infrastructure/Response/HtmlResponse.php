@@ -9,7 +9,6 @@ namespace DemoShop\Infrastructure\Response;
 class HtmlResponse extends Response
 {
     private array $variables;
-
     private string $path;
 
     /**

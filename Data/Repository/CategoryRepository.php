@@ -3,10 +3,14 @@
 namespace DemoShop\Data\Repository;
 
 use DemoShop\Data\Model\Category;
-use Illuminate\Support\Facades\DB;
+use DemoShop\Business\Repository\CategoryRepositoryInterface;
 use Exception;
 
-class CategoryRepository
+/*
+ * Stores logic for CRUD operations with categories
+ */
+
+class CategoryRepository implements CategoryRepositoryInterface
 {
     public function addCategory(array $data): bool
     {
@@ -21,6 +25,7 @@ class CategoryRepository
             return $newCategory->save();
         } catch (Exception $e) {
             echo $e->getMessage();
+
             return false;
         }
     }
@@ -33,6 +38,7 @@ class CategoryRepository
                 ->toArray();
         } catch (Exception $e) {
             echo $e->getMessage();
+
             return [];
         }
 
@@ -62,6 +68,7 @@ class CategoryRepository
             return true;
         } catch (Exception $e) {
             echo $e->getMessage();
+
             return false;
         }
     }
@@ -78,6 +85,7 @@ class CategoryRepository
             return true;
         } catch (Exception $e) {
             echo $e->getMessage();
+
             return false;
         }
     }
@@ -94,7 +102,6 @@ class CategoryRepository
 
             foreach ($children as $child) {
                 $this->deleteDescendants($child->title);
-
                 $child->delete();
             }
         } catch (Exception $e) {

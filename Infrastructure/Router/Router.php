@@ -6,6 +6,7 @@ use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
 use DemoShop\Presentation\Controller\AdminController;
+use DemoShop\Presentation\Controller\AuthController;
 use Exception;
 
 /*
@@ -52,16 +53,17 @@ class Router
         } catch (Exception $e) {
             if (!isset($request)) {
                 HtmlResponse::createInternalServerError();
+
                 return;
             }
 
-            $controller = ServiceRegistry::get(AdminController::class);
+            $adminController = ServiceRegistry::get(AdminController::class);
             if ($e->getMessage() === 'You are already logged in.') {
-                $controller->adminPage()->view();
+                $adminController->adminPage()->view();
                 return;
             }
-
-            $controller->loginPage($request)->view();
+            $authController = ServiceRegistry::get(AuthController::class);
+            $authController->loginPage($request)->view();
         }
     }
 

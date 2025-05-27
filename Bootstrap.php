@@ -2,20 +2,28 @@
 
 namespace DemoShop;
 
+use DemoShop\Business\Repository\AdminAuthTokenRepositoryInterface;
+use DemoShop\Business\Repository\AdminRepositoryInterface;
+use DemoShop\Business\Service\AuthService;
+use DemoShop\Business\Service\AuthServiceInterface;
+use DemoShop\Business\Service\CategoryService;
+use DemoShop\Business\Service\CategoryServiceInterface;
+use DemoShop\Business\Service\DashboardService;
+use DemoShop\Business\Service\DashboardServiceInterface;
 use DemoShop\Data\Repository\CategoryRepository;
-use DemoShop\Infrastructure\Session\SessionManager;
+use DemoShop\Business\Repository\CategoryRepositoryInterface;
 use DemoShop\Data\Encryption\Encryptor;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\ValidateMiddleware;
 use DemoShop\Presentation\Controller\AdminController;
+use DemoShop\Presentation\Controller\AuthController;
+use DemoShop\Presentation\Controller\CategoryController;
 use DemoShop\Presentation\Controller\ViewController;
 use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
-use DemoShop\Business\Service\AdminServiceInterface;
-use DemoShop\Business\Service\AdminService;
 use DemoShop\Business\Encryption\EncryptorInterface;
 use DemoShop\Data\Repository\AdminRepository;
 use DemoShop\Data\Repository\AdminAuthTokenRepository;
@@ -36,10 +44,6 @@ class Bootstrap
      */
     public static function init(): void
     {
-//        if (!SessionManager::getInstance()->has('adminLoggedIn')) {
-//            SessionManager::getInstance()->set('adminLoggedIn', false);
-//        }
-
         $dotenv = Dotenv::createImmutable(__DIR__);
         $dotenv->load();
 
@@ -67,13 +71,13 @@ class Bootstrap
      */
     private static function registerRepositories(): void
     {
-        ServiceRegistry::set(AdminRepository::class,
+        ServiceRegistry::set(AdminRepositoryInterface::class,
             new AdminRepository(ServiceRegistry::get(EncryptorInterface::class))
         );
-        ServiceRegistry::set(CategoryRepository::class,
+        ServiceRegistry::set(CategoryRepositoryInterface::class,
             new CategoryRepository()
         );
-        ServiceRegistry::set(AdminAuthTokenRepository::class,
+        ServiceRegistry::set(AdminAuthTokenRepositoryInterface::class,
             new AdminAuthTokenRepository()
         );
     }
@@ -85,13 +89,20 @@ class Bootstrap
      */
     private static function registerServices(): void
     {
-        ServiceRegistry::set(AdminServiceInterface::class,
-            new AdminService(
-                ServiceRegistry::get(AdminRepository::class),
-                ServiceRegistry::get(CategoryRepository::class),
-                ServiceRegistry::get(AdminAuthTokenRepository::class),
-                ServiceRegistry::get(EncryptorInterface::class)
-            ));
+        ServiceRegistry::set(AuthServiceInterface::class,
+            new AuthService(
+                ServiceRegistry::get(AdminRepositoryInterface::class),
+                ServiceRegistry::get(AdminAuthTokenRepositoryInterface::class),
+                ServiceRegistry::get(EncryptorInterface::class)),
+        );
+        ServiceRegistry::set(CategoryServiceInterface::class,
+            new CategoryService(
+                ServiceRegistry::get(CategoryRepositoryInterface::class),
+            )
+        );
+        ServiceRegistry::set(DashboardServiceInterface::class,
+            new DashboardService()
+        );
     }
 
     /**
@@ -105,9 +116,14 @@ class Bootstrap
             new ViewController()
         );
         ServiceRegistry::set(AdminController::class,
-            new AdminController(
-                ServiceRegistry::get(AdminServiceInterface::class),
-            ));
+            new AdminController(ServiceRegistry::get(DashboardServiceInterface::class)),
+        );
+        ServiceRegistry::set(AuthController::class,
+            new AuthController(ServiceRegistry::get(AuthServiceInterface::class)),
+        );
+        ServiceRegistry::set(CategoryController::class,
+            new CategoryController(ServiceRegistry::get(CategoryServiceInterface::class)),
+        );
     }
 
     /**
@@ -122,12 +138,14 @@ class Bootstrap
         try {
             $viewController = ServiceRegistry::get(ViewController::class);
             $adminController = ServiceRegistry::get(AdminController::class);
+            $authController = ServiceRegistry::get(AuthController::class);
+            $categoryController = ServiceRegistry::get(CategoryController::class);
 
             $router->add('GET', '/', [$viewController, 'landingPage']);
             $router->add(
                 'GET',
                 '/login',
-                [$adminController, 'loginPage'],
+                [$authController, 'loginPage'],
                 'adminCheckLoginPipeline'
             );
             $router->add(
@@ -139,13 +157,13 @@ class Bootstrap
             $router->add(
                 'POST',
                 '/login',
-                [$adminController, 'sendLoginInfo'],
+                [$authController, 'sendLoginInfo'],
                 'adminLoginPipeline'
             );
             $router->add(
                 'GET',
                 '/logout',
-                [$adminController, 'logout']
+                [$authController, 'logout']
             );
             $router->add(
                 'GET',
@@ -156,24 +174,24 @@ class Bootstrap
             $router->add(
                 'POST',
                 '/api/createCategory',
-                [$adminController, 'createCategory'],
+                [$categoryController, 'createCategory'],
                 'adminAuthorizePipeline'
             );
             $router->add(
                 'GET',
                 '/api/categories',
-                [$adminController, 'getCategories'],
+                [$categoryController, 'getCategories'],
                 'adminAuthorizePipeline'
             );
             $router->add(
                 'PUT',
                 '/api/update/{id}',
-                [$adminController, 'updateCategory'],
+                [$categoryController, 'updateCategory'],
                 'adminAuthorizePipeline'
             );
             $router->add('DELETE',
                 '/api/delete/{id}',
-                [$adminController, 'deleteCategory'],
+                [$categoryController, 'deleteCategory'],
                 'adminAuthorizePipeline'
             );
         } catch (Exception $e) {
@@ -228,12 +246,12 @@ class Bootstrap
     private static function registerLoginMiddleware(): void
     {
         $middleware = new ValidateMiddleware(
-            ServiceRegistry::get(AdminServiceInterface::class)
+            ServiceRegistry::get(AuthServiceInterface::class)
         );
 
         $middleware
             ->linkWith(new AlreadyLoggedInMiddleware(
-                ServiceRegistry::get(AdminServiceInterface::class)
+                ServiceRegistry::get(AuthServiceInterface::class)
             ));
         ServiceRegistry::set('adminLoginPipeline', $middleware);
     }
@@ -246,7 +264,7 @@ class Bootstrap
     private static function registerAuthorizeMiddleware(): void
     {
         $middleware = new AuthorizeMiddleware(
-            ServiceRegistry::get(AdminServiceInterface::class)
+            ServiceRegistry::get(AuthServiceInterface::class)
         );
         ServiceRegistry::set('adminAuthorizePipeline', $middleware);
     }
@@ -259,7 +277,7 @@ class Bootstrap
     private static function registerAlreadyLoggedInMiddleware(): void
     {
         $middleware = new AlreadyLoggedInMiddleware(
-            ServiceRegistry::get(AdminServiceInterface::class)
+            ServiceRegistry::get(AuthServiceInterface::class)
         );
         ServiceRegistry::set('adminCheckLoginPipeline', $middleware);
     }

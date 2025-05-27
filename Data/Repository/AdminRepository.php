@@ -4,6 +4,7 @@ namespace DemoShop\Data\Repository;
 
 use DemoShop\Business\Model\Admin;
 use DemoShop\Business\Encryption\EncryptorInterface;
+use DemoShop\Business\Repository\AdminRepositoryInterface;
 use DemoShop\Data\Model\Admin as AdminEntity;
 use Illuminate\Contracts\Encryption\DecryptException;
 
@@ -11,7 +12,7 @@ use Illuminate\Contracts\Encryption\DecryptException;
  * Stores logic for interacting with database
  */
 
-class AdminRepository
+class AdminRepository implements AdminRepositoryInterface
 {
     private EncryptorInterface $encryptor;
 
@@ -26,11 +27,7 @@ class AdminRepository
     }
 
     /**
-     * Checks if admin credentials are present in database
-     *
-     * @param Admin $admin
-     *
-     * @return bool
+     * @inheritDoc
      */
     public function authenticate(Admin $admin): int
     {

@@ -104,29 +104,21 @@ button:active {
 }
 
 .login-remember-me {
-    display: flex;          /* Use flexbox for layout */
-    flex-direction: row;    /* Align items horizontally (label and checkbox) */
-    align-items: center;    /* Vertically align items to their center */
-    gap: 0.5em;             /* Creates a small space between the label and the checkbox */
-    margin-top: 8px;        /* Optional: Adds some space above this group */
-    margin-bottom: 15px;    /* Optional: Adds space below, before the login button */
-    /* text-align: left; will be inherited from fieldset > div if this is a child */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: 8px;
+    margin-bottom: 15px;
 }
 
-/* Specific styling for the label within the "Keep me logged in" container */
 .login-remember-me label {
-    margin-bottom: 0;       /* Removes the default bottom margin that general labels have */
-    /* font-weight, color, and font-size will be inherited from your existing global label style */
-    /* No need to repeat them unless you want a different style here */
-    /* cursor: pointer; */ /* Optional: makes the label feel more clickable */
+    margin-bottom: 0;
 }
 
-/* Specific styling for the checkbox input within this container */
 .login-remember-me input[type="checkbox"] {
-    width: auto;            /* Prevents checkbox from taking full width if other inputs do */
-    margin: 0;              /* Resets default browser margins for the checkbox */
-    padding: 0;             /* Resets default browser padding */
-    vertical-align: middle; /* Can help with slightly better vertical alignment in some cases */
-    /* For more advanced styling of checkboxes, you'd typically hide the default
-       checkbox and style a pseudo-element on the label, but this is for basic alignment. */
+    width: auto;
+    margin: 0;
+    padding: 0;
+    vertical-align: middle;
 }

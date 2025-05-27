@@ -3,13 +3,20 @@
 namespace DemoShop\Data\Repository;
 
 use DemoShop\Data\Model\AdminAuthToken;
+use DemoShop\Business\Repository\AdminAuthTokenRepositoryInterface;
 use Carbon\Carbon;
 use Exception;
 
-class AdminAuthTokenRepository
+/*
+ * Stores logic for admin authentication
+ */
+class AdminAuthTokenRepository implements AdminAuthTokenRepositoryInterface
 {
+    /**
+     * @inheritDoc
+     */
     public function storeToken(
-        int $adminId,
+        int    $adminId,
         string $selector,
         string $hashedValidator,
         string $expiresAt,
@@ -29,6 +36,9 @@ class AdminAuthTokenRepository
         }
     }
 
+    /**
+     * @inheritDoc
+     */
     public function findTokenBySelector(string $selector): ?AdminAuthToken
     {
         try {
@@ -42,27 +52,9 @@ class AdminAuthTokenRepository
         }
     }
 
-    public function updateTokenValidator(string $selector, string $newHashedValidator, string $newExpiresAt): bool
-    {
-        try {
-            $token = AdminAuthToken::where('selector', $selector)
-                ->where('expires_at', '>', Carbon::now())
-                ->first();
-
-            if ($token) {
-                return $token->update([
-                    'hashed_validator' => $newHashedValidator,
-                    'expires_at' => $newExpiresAt,
-                ]);
-            }
-            return false;
-        } catch (Exception $e) {
-            echo $e->getMessage();
-
-            return false;
-        }
-    }
-
+    /**
+     * @inheritDoc
+     */
     public function deleteTokenBySelector(string $selector): bool
     {
         try {
@@ -72,29 +64,6 @@ class AdminAuthTokenRepository
             echo $e->getMessage();
 
             return false;
-        }
-    }
-
-    public function deleteTokensByAdminId(string $adminId): bool
-    {
-        try {
-            $deletedRows = AdminAuthToken::where('admin_id', $adminId)->delete();
-            return $deletedRows > 0;
-        } catch (Exception $e) {
-            echo $e->getMessage();
-
-            return false;
-        }
-    }
-
-    public function deleteExpiredTokens(): int
-    {
-        try {
-            return AdminAuthToken::where('expires_at', '<', Carbon::now())->delete();
-        } catch (Exception $e) {
-            echo $e->getMessage();
-
-            return -1;
         }
     }
 }

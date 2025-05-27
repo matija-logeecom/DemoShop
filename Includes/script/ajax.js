@@ -1,7 +1,6 @@
-// noinspection ExceptionCaughtLocallyJS
-
 export function getQueryParameter(name) {
-    const urlParams = new URLSearchParams(window.location.search)
+    const urlParams = new URLSearchParams(window.location.search);
+
     return urlParams.get(name)
 }
 
@@ -24,6 +23,7 @@ export async function postData(url, data = {}) {
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error("Error sending data.");
+
         return await response.json();
     } catch (err) {
         console.error(err);
@@ -39,6 +39,7 @@ export async function putData(url, data = {}) {
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error("Error updating data.");
+
         return await response.json();
     } catch (err) {
         console.error(err);

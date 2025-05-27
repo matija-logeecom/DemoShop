@@ -2,7 +2,7 @@
 
 namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\Business\Service\AdminServiceInterface;
+use DemoShop\Business\Service\AuthServiceInterface;
 use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
@@ -12,16 +12,16 @@ use Exception;
 
 class ValidateMiddleware extends Middleware
 {
-    private AdminServiceInterface $adminService;
+    private AuthServiceInterface $authService;
 
     /**
      * Constructs Validate Middleware instance
      *
-     * @param AdminServiceInterface $adminService
+     * @param AuthServiceInterface $authService
      */
-    public function __construct(AdminServiceInterface $adminService)
+    public function __construct(AuthServiceInterface $authService)
     {
-        $this->adminService = $adminService;
+        $this->authService = $authService;
     }
 
     /**
@@ -34,8 +34,8 @@ class ValidateMiddleware extends Middleware
 
         $username = trim($request->getBody()['username']) ?? '';
         $password = trim($request->getBody()['password']) ?? '';
-        $validUsername = $this->adminService->isValidUsername($username, $errors);
-        $validPassword = $this->adminService->isValidPassword($password, $errors);
+        $validUsername = $this->authService->isValidUsername($username, $errors);
+        $validPassword = $this->authService->isValidPassword($password, $errors);
 
         if (!$validUsername || !$validPassword) {
             $request->setRouteParams([

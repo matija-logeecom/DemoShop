@@ -147,11 +147,10 @@ button.admin-button:active,
     transform: translateY(0);
 }
 
-/* Styles for disabled buttons */
 button.admin-button:disabled,
 #app-root button:disabled {
-    background-color: #adb5bd; /* Medium gray */
-    color: #6c757d;           /* Darker gray text */
+    background-color: #adb5bd;
+    color: #6c757d;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -160,13 +159,13 @@ button.admin-button:disabled,
 
 button.admin-button:disabled:hover,
 #app-root button:disabled:hover {
-    background-color: #adb5bd; /* Keep disabled background on hover */
+    background-color: #adb5bd;
     transform: none;
 }
 
 button.admin-button:disabled:active,
 #app-root button:disabled:active {
-    background-color: #adb5bd; /* Keep disabled background on active */
+    background-color: #adb5bd;
     transform: none;
 }
 
@@ -266,53 +265,44 @@ button.admin-button:disabled:active,
     margin-bottom: 0;
 }
 
-/* CATEGORY PAGE SPECIFIC STYLES */
-
 .categories-container {
     display: flex;
     gap: 20px;
-    /* align-items: flex-start; */ /* Uncomment this if you DON'T want panels to be equal height */
 }
 
 .category-tree-panel {
     flex: 1;
-    /* .content-panel styles will apply as this class is added in JS */
-    display: flex;             /* Make this a flex container */
-    flex-direction: column;    /* Stack its children (tree and actions) vertically */
-    /* min-height: 300px; */  /* Optional: set a minimum height for the panel */
+    display: flex;
+    flex-direction: column;
 }
 
 .category-details-panel {
     flex: 2;
-    /* .content-panel styles will apply as this class is added in JS */
 }
 
-.category-tree { /* This is the UL element */
+.category-tree {
     list-style-type: none;
     padding-left: 0;
-    flex-grow: 1;         /* Allows the tree list to take available vertical space */
-    overflow-y: auto;     /* Adds scrollbar if tree content is too tall */
-    margin-bottom: 10px;  /* Space between tree and action buttons */
-    /* border: 1px solid #eee; */ /* Optional: for visual debugging */
-    /* min-height: 100px; */ /* Optional: ensure tree area has some min height */
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+
 }
 
 .tree-actions {
-    margin-top: 15px; /* Existing */
+    margin-top: 15px;
     display: flex;
-    justify-content: space-between; /* This will push items to opposite ends */
-    align-items: center; /* Optional: vertically align if buttons have different heights */
+    justify-content: space-between;
+    align-items: center;
 }
 
 #pc_categoryForm .details-actions {
     display: flex;
-    justify-content: space-between; /* Pushes Delete to left, and actions-right group to right */
-    align-items: center;          /* Vertically align items */
-    margin-top: 20px;             /* Or your preferred margin */
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
 }
 
-
-/* Styles for each label-input pair group */
 #pc_categoryForm .form-group {
     display: flex;
     align-items: flex-start;
@@ -341,10 +331,9 @@ button.admin-button:disabled:active,
 
 #pc_categoryForm .actions-right {
     display: flex;
-    gap: 5px; /* Or use margin-right on individual buttons if preferred */
+    gap: 5px;
 }
 
-/* Tree item styling */
 .category-tree li {
     margin-bottom: 3px;
     padding: 0;
@@ -393,10 +382,6 @@ button.admin-button:disabled:active,
     background-color: #0056b3;
 }
 
-.category-tree li.selected > .category-item-content .tree-toggler {
-    /* color: white; // Already white due to .tree-toggler rule */
-}
-
 .tree-toggler-placeholder {
     display: inline-block;
     width: 22px;
@@ -414,13 +399,13 @@ button.admin-button:disabled:active,
 #pc_categoryForm .form-group select {
     flex-grow: 1;
     width: 100%;
-    padding: 8px 12px; /* Match your text inputs */
-    border: 1px solid #ddd; /* Match your text inputs */
-    border-radius: 6px; /* Match your text inputs */
-    font-size: 0.95rem; /* Match your text inputs */
-    color: #333; /* Match your text inputs */
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #333;
     box-sizing: border-box;
-    background-color: #fff; /* Ensure background for select */
+    background-color: #fff;
 }
 
 #pc_categoryForm .form-group select:focus {
@@ -430,50 +415,33 @@ button.admin-button:disabled:active,
 }
 
 .sidebar {
-    /* width, background-color, padding, border-right are likely already defined in your existing admin.css */
-    /* Ensure these are present or adjust as needed: */
     display: flex;
-    flex-direction: column; /* Stack children (nav, logout-container) vertically */
-    /* padding: 20px 15px; */ /* Example, adjust if you have existing padding */
+    flex-direction: column;
 }
 
-/*
-    Target the main navigation element within the sidebar.
-    Allow this navigation group to grow and take up available vertical space.
-    This pushes the .logout-container to the bottom.
-*/
-.sidebar nav#admin-nav { /* Targeting the specific nav element by its ID */
+.sidebar nav#admin-nav {
     flex-grow: 1;
-    /* Your existing styles for .sidebar nav ul, .sidebar nav li a will apply to the links within */
 }
 
-/*
-    Container for the logout link.
-    This will be pushed to the bottom by the flex-grow property on the nav above.
-*/
 .logout-container {
-    margin-top: 20px;          /* Adds some space above the separator line */
-    padding-top: 15px;         /* Adds space between the separator line and the logout link */
-    border-top: 1px solid #cccccc; /* Creates the visual separator line */
-    /* text-align: center; */ /* If you want the link itself centered, apply to .logout-link */
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #cccccc;
 }
 
-/*
-    Styling for the logout link itself.
-*/
-.logout-container a { /* Targeting the <a> tag directly within .logout-container */
-    display: block;         /* Make it a block element to take full width and allow padding */
-    padding: 10px 15px;     /* Consistent padding with other navigation links */
+.logout-container a {
+    display: block;
+    padding: 10px 15px;
     text-decoration: none;
-    background-color: #c9302c; /* Default red background */
-    color: white;           /* Default white text */
-    font-weight: 500;       /* Or match your other nav link font-weight */
-    border-radius: 6px;     /* Consistent with other interactive elements */
-    text-align: center;     /* Center the text within the link/button area */
+    background-color: #c9302c;
+    color: white;
+    font-weight: 500;
+    border-radius: 6px;
+    text-align: center;
     transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .logout-container a:hover {
-    background-color: #a92723; /* Slightly darker red on hover */
-    color: white;           /* Keep text white on hover */
+    background-color: #a92723;
+    color: white;
 }

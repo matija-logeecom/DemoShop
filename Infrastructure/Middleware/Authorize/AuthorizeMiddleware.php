@@ -2,8 +2,7 @@
 
 namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\Business\Service\AdminServiceInterface;
-use DemoShop\Infrastructure\Session\SessionManager;
+use DemoShop\Business\Service\AuthServiceInterface;
 use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
@@ -13,14 +12,14 @@ use Exception;
 
 class AuthorizeMiddleware extends Middleware
 {
-    private AdminServiceInterface $adminService;
+    private AuthServiceInterface $authService;
     private const AUTH_COOKIE_NAME = 'DEMO_SHOP_AUTH';
     private const DB_TOKEN_PREFIX = 'db_token:';
     private const SESSION_PAYLOAD_PREFIX = 'session_payload:';
 
-    public function __construct(AdminServiceInterface $adminService)
+    public function __construct(AuthServiceInterface $authService)
     {
-        $this->adminService = $adminService;
+        $this->authService = $authService;
     }
 
     /**
@@ -39,13 +38,13 @@ class AuthorizeMiddleware extends Middleware
                if (count($parts) === 2) {
                    $selector = $parts[0];
                    $validatorFromCookie = $parts[1];
-                   $adminId = $this->adminService->validateAuthToken($selector, $validatorFromCookie);
+                   $adminId = $this->authService->validateAuthToken($selector, $validatorFromCookie);
                }
            }
 
            if (str_starts_with($cookieValue, self::SESSION_PAYLOAD_PREFIX)) {
                $encryptedPayload = substr($cookieValue, strlen(self::SESSION_PAYLOAD_PREFIX));
-               $adminId = $this->adminService->validateEncryptedSessionPayload($encryptedPayload);
+               $adminId = $this->authService->validateEncryptedSessionPayload($encryptedPayload);
            }
        }
 

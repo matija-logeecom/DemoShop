@@ -1,6 +1,6 @@
 import {showDashboard} from "./pages/dashboard.js";
 import {showProducts} from "./pages/products.js";
-import {showProductCategories} from "./pages/productCategories.js"
+import {showProductCategories} from "./pages/categories/productCategories.js"
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!window.myAppRouter) {
