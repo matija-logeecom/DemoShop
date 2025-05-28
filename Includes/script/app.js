@@ -4,7 +4,7 @@ import { showProducts } from "./pages/products.js";
 import { showProductCategories } from "./pages/productCategories.js"; // This now imports your refactored controller/page setup
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Instantiate the Router
+    // Instantiate the RouteDispatcher
     const router = new Router('app-root'); // Pass the ID of your app's root element
 
     // If you want to make it globally accessible like before (optional)

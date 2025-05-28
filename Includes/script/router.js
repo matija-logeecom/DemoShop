@@ -9,7 +9,7 @@ export class Router {
         }
 
         window.addEventListener('hashchange', () => this.handleRouteChange());
-        console.log("Router initialized.");
+        console.log("RouteDispatcher initialized.");
     }
 
     addRoute(path, handler) {

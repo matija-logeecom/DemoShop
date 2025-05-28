@@ -2,6 +2,7 @@
 
 namespace DemoShop\Infrastructure\Middleware\Authorize;
 
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
 use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
@@ -12,7 +13,9 @@ use Exception;
 abstract class Middleware
 {
     private ?Middleware $next = null;
-
+    protected const AUTH_COOKIE_NAME = 'DEMO_SHOP_AUTH';
+    protected const DB_TOKEN_PREFIX = 'db_token:';
+    protected const SESSION_PAYLOAD_PREFIX = 'session_payload:';
     /**
      * Sets link to next middleware
      *
@@ -41,5 +44,29 @@ abstract class Middleware
         }
 
         $this->next->check($request);
+    }
+
+    protected final function getAdminIdFromCookie(Request $request, AuthServiceInterface $authService): ?int
+    {
+        $adminId = null;
+        if (isset($_COOKIE[self::AUTH_COOKIE_NAME])) {
+            $cookieValue = $_COOKIE[self::AUTH_COOKIE_NAME];
+
+            if (str_starts_with($cookieValue, self::DB_TOKEN_PREFIX)) {
+                $tokenString = substr($cookieValue, strlen(self::DB_TOKEN_PREFIX));
+                $parts = explode(':', $tokenString, 2);
+                if (count($parts) === 2) {
+                    $selector = $parts[0];
+                    $validatorFromCookie = $parts[1];
+                    $adminId = $authService->validateAuthToken($selector, $validatorFromCookie);
+                }
+            }
+            if (str_starts_with($cookieValue, self::SESSION_PAYLOAD_PREFIX)) {
+                $encryptedPayload = substr($cookieValue, strlen(self::SESSION_PAYLOAD_PREFIX));
+                $adminId = $authService->validateEncryptedSessionPayload($encryptedPayload);
+            }
+        }
+
+        return $adminId;
     }
 }
