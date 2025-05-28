@@ -2,15 +2,31 @@
 
 namespace DemoShop\Business\Service;
 
+use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
+use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
 use DemoShop\Data\Repository\CategoryRepository;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use Exception;
+use RuntimeException;
 
 class CategoryService implements CategoryServiceInterface
 {
     private CategoryRepository $categoryRepository;
 
-    public function __construct(CategoryRepository $categoryRepository)
+    public function __construct()
     {
-        $this->categoryRepository = $categoryRepository;
+        try {
+            $this->categoryRepository = ServiceRegistry::get(CategoryRepositoryInterface::class);
+        } catch (Exception $e) {
+            error_log("CRITICAL: CategoryService could not be initialized.
+             Failed to get CategoryRepository service. Original error: " . $e->getMessage());
+            throw new RuntimeException(
+                "CategoryService failed to initialize due to a
+                 missing critical dependency (CategoryRepository).",
+                0, $e
+            );
+        }
+
     }
 
     /**
@@ -18,7 +34,13 @@ class CategoryService implements CategoryServiceInterface
      */
     public function createCategory(array $data): bool
     {
-        return $this->categoryRepository->addCategory($data);
+        try {
+            return $this->categoryRepository->addCategory($data);
+        } catch (RuntimeException $e) {
+            error_log("createCategory - Failed due to repository error. Data: " .
+                json_encode($data) . ". Error: " . $e->getMessage());
+            throw new RuntimeException("Failed to create category.", 0, $e);
+        }
     }
 
     /**
@@ -26,7 +48,13 @@ class CategoryService implements CategoryServiceInterface
      */
     public function getCategories(): array
     {
-        return $this->categoryRepository->getCategories();
+        try {
+            return $this->categoryRepository->getCategories();
+        } catch (RuntimeException $e) {
+            error_log("getCategories - Failed due to repository error: " . $e->getMessage());
+            throw new RuntimeException("Failed to retrieve categories. Please check logs for details.",
+                0, $e);
+        }
     }
 
     /**
@@ -34,7 +62,14 @@ class CategoryService implements CategoryServiceInterface
      */
     public function updateCategory(array $data): bool
     {
-        return $this->categoryRepository->updateCategory($data);
+        try {
+            return $this->categoryRepository->updateCategory($data);
+        } catch (RuntimeException $e) {
+            $categoryId = $data['id'] ?? 'N/A';
+            error_log("updateCategory - Failed for category ID {$categoryId} due to repository error. Data: "
+                . json_encode($data) . ". Error: " . $e->getMessage());
+            throw new RuntimeException("Failed to update category. Please check logs for details.", 0, $e);
+        }
     }
 
     /**
@@ -42,6 +77,12 @@ class CategoryService implements CategoryServiceInterface
      */
     public function deleteCategory(int $id): bool
     {
-        return $this->categoryRepository->deleteCategory($id);
+        try {
+            return $this->categoryRepository->deleteCategory($id);
+        } catch (RuntimeException $e) {
+            error_log(
+                "deleteCategory - Failed for category ID {$id} due to repository error: " . $e->getMessage());
+            throw new RuntimeException("Failed to delete category. Please check logs for details.", 0, $e);
+        }
     }
 }

@@ -1,61 +1,53 @@
-const router = {
-    routes: {},
-    appRoot: null,
-    init: function (appRootId) {
-        this.appRoot = document.getElementById(appRootId)
+export class Router {
+    constructor(appRootId) {
+        this.appRoot = document.getElementById(appRootId);
+        this.routes = {};
+
         if (!this.appRoot) {
-            console.error(`Element with ID '${appRootId}' not found. Router cannot initialize.`)
-            return
+            console.error(`Element with ID '${appRootId}' not found. Router cannot initialize.`);
+            return;
         }
 
-        window.addEventListener('hashchange', () => this.handleRouteChange())
+        window.addEventListener('hashchange', () => this.handleRouteChange());
+        console.log("Router initialized.");
+    }
 
-        console.log("Router initialized.")
-    },
-
-    addRoute: function (path, handler) {
+    addRoute(path, handler) {
         if (typeof handler !== 'function') {
-            console.error(`Handler for path '${path}' is not a function.`)
-            return
+            console.error(`Handler for path '${path}' is not a function.`);
+            return;
         }
+        this.routes[path] = handler;
+        console.log(`Router added: ${path}`);
+    }
 
-        this.routes[path] = handler
-        console.log(`Router added: ${path}`)
-    },
+    handleRouteChange() {
+        const currentPath = window.location.hash || '#/';
+        console.log('Current path:', currentPath);
 
-    handleRouteChange: function () {
-        const currentPath = window.location.hash || '#/'
-        console.log('Current path:', currentPath)
+        const handler = this.routes[currentPath];
 
-        const handler = this.routes[currentPath]
+        if (this.appRoot) { // Ensure appRoot exists before manipulating
+            this.appRoot.innerHTML = ''; // Clear previous content
 
-        if (handler) {
-            const pageContent = handler()
+            if (handler) {
+                const pageContent = handler(); // Execute the handler
 
-            if (this.appRoot) {
-                this.appRoot.innerHTML = ''
-            }
-
-            if (typeof pageContent === 'string') {
-                this.appRoot.innerHTML = pageContent;
-            }
-
-            if (pageContent instanceof Node) {
-                this.appRoot.appendChild(pageContent)
-            }
-        } else {
-            console.warn(`No route handler found for path: ${currentPath}`)
-            console.log(handler)
-            if (this.appRoot) {
-                this.appRoot.innerHTML = '<h1>404 - Page Not Found</h1>' +
-                    '<p>Sorry, the page you are looking for does not exist.</p>'
+                if (typeof pageContent === 'string') {
+                    this.appRoot.innerHTML = pageContent;
+                } else if (pageContent instanceof Node) {
+                    this.appRoot.appendChild(pageContent);
+                } else if (pageContent !== undefined) {
+                    console.warn(`Route handler for '${currentPath}' did not return a string or DOM Node.`);
+                }
+            } else {
+                console.warn(`No route handler found for path: ${currentPath}`);
+                this.appRoot.innerHTML = '<h1>404 - Page Not Found</h1><p>Sorry, the page you are looking for does not exist.</p>';
             }
         }
-    },
+    }
 
-    navigateTo: function (path) {
-        window.location.hash = path
+    navigateTo(path) {
+        window.location.hash = path;
     }
 }
-
-window.myAppRouter = router

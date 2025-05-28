@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\Business\Repository;
+namespace DemoShop\Business\Interfaces\Repository;
 
 interface CategoryRepositoryInterface
 {

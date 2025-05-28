@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\Business\Encryption;
+namespace DemoShop\Business\Interfaces\Encryption;
 
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\Encryption\EncryptException;

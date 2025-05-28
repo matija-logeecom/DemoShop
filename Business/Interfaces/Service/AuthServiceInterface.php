@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\Business\Service;
+namespace DemoShop\Business\Interfaces\Service;
 
 use DemoShop\Business\Model\Admin;
 

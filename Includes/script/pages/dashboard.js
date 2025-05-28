@@ -1,23 +1,28 @@
-import {getData} from "../ajax.js";
+import { AjaxService } from "../ajax.js"; // Import the CLASS
+
+const ajaxService = new AjaxService(); // Create an instance
 
 export function showDashboard() {
-    const wrapper = document.createElement('div')
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = '<h2>Dashboard</h2><p>Loading data...</p>';
 
-    wrapper.innerHTML = '<h2>Dashboard</h2><p>Loading data...</p>'
-    getData('api/dashboard')
+    ajaxService.get('api/dashboard') // Use the instance and its 'get' method
         .then(data => {
-            wrapper.innerHTML = ''
-            wrapper.appendChild(renderDashboard(data))
+            wrapper.innerHTML = ''; // Clear loading message
+            wrapper.appendChild(renderDashboard(data)); // Assuming renderDashboard is defined in this file
         })
         .catch(error => {
             console.error("Failed to load dashboard data:", error);
             wrapper.innerHTML = '<h2>Dashboard</h2><p>Error loading data. Please try again later.</p>';
         });
 
-    return wrapper
+    return wrapper;
 }
 
+// Ensure renderDashboard function is defined here or imported if it's complex
 function renderDashboard(data) {
+    // This is the renderDashboard function from your original dashboard.js file
+    // Make sure it's included here if it's not already.
     const h2 = document.createElement("h2");
     h2.textContent = "Dashboard";
 
@@ -27,10 +32,8 @@ function renderDashboard(data) {
     // Panel 1: Site Statistics
     const panel1 = document.createElement("div");
     panel1.className = "dashboard-panel";
-
     const h4_1 = document.createElement("h4");
     h4_1.textContent = "Site Statistics";
-
     const p1 = document.createElement("p");
     const span1 = document.createElement("span");
     span1.textContent = "Products count:";
@@ -40,7 +43,6 @@ function renderDashboard(data) {
     input1.value = data.productsCount;
     input1.readOnly = true;
     p1.append(span1, input1);
-
     const p2 = document.createElement("p");
     const span2 = document.createElement("span");
     span2.textContent = "Categories count:";
@@ -50,16 +52,13 @@ function renderDashboard(data) {
     input2.value = data.categoriesCount;
     input2.readOnly = true;
     p2.append(span2, input2);
-
     panel1.append(h4_1, p1, p2);
 
     // Panel 2: Usage Metrics
     const panel2 = document.createElement("div");
     panel2.className = "dashboard-panel";
-
     const h4_2 = document.createElement("h4");
     h4_2.textContent = "Usage Metrics";
-
     const p3 = document.createElement("p");
     const span3 = document.createElement("span");
     span3.textContent = "Home page opening count:";
@@ -69,7 +68,6 @@ function renderDashboard(data) {
     input3.value = data.homePageOpeningCount;
     input3.readOnly = true;
     p3.append(span3, input3);
-
     const p4 = document.createElement("p");
     const span4 = document.createElement("span");
     span4.textContent = "Most often viewed product:";
@@ -79,7 +77,6 @@ function renderDashboard(data) {
     input4.value = data.mostOftenViewedProduct;
     input4.readOnly = true;
     p4.append(span4, input4);
-
     const p5 = document.createElement("p");
     const span5 = document.createElement("span");
     span5.textContent = "Number of prod1 views:";
@@ -89,7 +86,6 @@ function renderDashboard(data) {
     input5.value = data.numberOfProd1Views;
     input5.readOnly = true;
     p5.append(span5, input5);
-
     panel2.append(h4_2, p3, p4, p5);
 
     container.append(panel1, panel2);

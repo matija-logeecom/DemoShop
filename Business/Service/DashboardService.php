@@ -2,6 +2,8 @@
 
 namespace DemoShop\Business\Service;
 
+use DemoShop\Business\Interfaces\Service\DashboardServiceInterface;
+
 class DashboardService implements DashboardServiceInterface
 {
     /**

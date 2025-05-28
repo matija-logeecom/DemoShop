@@ -2,7 +2,8 @@
 
 namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\Business\Service\AuthServiceInterface;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
@@ -16,12 +17,20 @@ class ValidateMiddleware extends Middleware
 
     /**
      * Constructs Validate Middleware instance
-     *
-     * @param AuthServiceInterface $authService
      */
-    public function __construct(AuthServiceInterface $authService)
+    public function __construct()
     {
-        $this->authService = $authService;
+        try {
+            $this->authService = ServiceRegistry::get(AuthServiceInterface::class);
+        } catch (\Exception $e) {
+            error_log("CRITICAL: ValidateMiddleware could not be initialized.
+             Failed to get AuthService service. Original error: " . $e->getMessage());
+            throw new \RuntimeException(
+                "ValidateMiddleware failed to initialize due to a
+                 missing critical dependency.",
+                0, $e
+            );
+        }
     }
 
     /**

@@ -2,9 +2,11 @@
 
 namespace DemoShop\Infrastructure\Middleware\Authorize;
 
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
-use DemoShop\Business\Service\AuthServiceInterface;
 use Exception;
+use RuntimeException;
 
 class AlreadyLoggedInMiddleware extends Middleware
 {
@@ -13,9 +15,19 @@ class AlreadyLoggedInMiddleware extends Middleware
     private const DB_TOKEN_PREFIX = 'db_token:';
     private const SESSION_PAYLOAD_PREFIX = 'session_payload:';
 
-    public function __construct(authServiceInterface $authService)
+    public function __construct()
     {
-        $this->authService = $authService;
+        try {
+            $this->authService = ServiceRegistry::get(AuthServiceInterface::class);
+        } catch (Exception $e) {
+            error_log("CRITICAL: AlreadyLoggedInMiddleware could not be initialized.
+             Failed to get AuthService service. Original error: " . $e->getMessage());
+            throw new RuntimeException(
+                "AlreadyLoggedInMiddleware failed to initialize due to a
+                 missing critical dependency.",
+                0, $e
+            );
+        }
     }
 
     /**

@@ -1,23 +1,24 @@
-import {showDashboard} from "./pages/dashboard.js";
-import {showProducts} from "./pages/products.js";
-import {showProductCategories} from "./pages/categories/productCategories.js"
+import { Router } from './router.js'; // Import the class
+import { showDashboard } from "./pages/dashboard.js";
+import { showProducts } from "./pages/products.js";
+import { showProductCategories } from "./pages/productCategories.js"; // This now imports your refactored controller/page setup
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!window.myAppRouter) {
-        console.error('Router not found! Make sure router.js is loaded before app.js.');
-        return;
-    }
+    // Instantiate the Router
+    const router = new Router('app-root'); // Pass the ID of your app's root element
 
-    window.myAppRouter.init('app-root');
+    // If you want to make it globally accessible like before (optional)
+    // window.myAppRouter = router;
 
-    window.myAppRouter.addRoute('#/', showDashboard);
-    window.myAppRouter.addRoute('#/products', showProducts);
-    window.myAppRouter.addRoute('#/product-categories', showProductCategories);
+    router.addRoute('#/', showDashboard);
+    router.addRoute('#/products', showProducts);
+    router.addRoute('#/product-categories', showProductCategories);
 
-    window.myAppRouter.handleRouteChange();
+    // Initial route handling
+    router.handleRouteChange();
 
+    // Navigation link active state handling (remains mostly the same)
     const navLinks = document.querySelectorAll('.sidebar nav a');
-
     function setActiveLink() {
         const currentHash = window.location.hash || '#/';
         navLinks.forEach(link => {
@@ -28,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
     setActiveLink();
     window.addEventListener('hashchange', setActiveLink);
 });

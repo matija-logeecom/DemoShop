@@ -298,11 +298,9 @@ button.admin-button:disabled:active,
 
 #pc_categoryForm .details-actions {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-top: 20px;
 }
-
 #pc_categoryForm .form-group {
     display: flex;
     align-items: flex-start;
@@ -332,6 +330,7 @@ button.admin-button:disabled:active,
 #pc_categoryForm .actions-right {
     display: flex;
     gap: 5px;
+    margin-left: auto;
 }
 
 .category-tree li {

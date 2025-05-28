@@ -2,34 +2,34 @@
 
 namespace DemoShop;
 
-use DemoShop\Business\Repository\AdminAuthTokenRepositoryInterface;
-use DemoShop\Business\Repository\AdminRepositoryInterface;
+use DemoShop\Business\Interfaces\Encryption\EncryptorInterface;
+use DemoShop\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\AdminRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
+use DemoShop\Business\Interfaces\Service\DashboardServiceInterface;
 use DemoShop\Business\Service\AuthService;
-use DemoShop\Business\Service\AuthServiceInterface;
 use DemoShop\Business\Service\CategoryService;
-use DemoShop\Business\Service\CategoryServiceInterface;
 use DemoShop\Business\Service\DashboardService;
-use DemoShop\Business\Service\DashboardServiceInterface;
-use DemoShop\Data\Repository\CategoryRepository;
-use DemoShop\Business\Repository\CategoryRepositoryInterface;
 use DemoShop\Data\Encryption\Encryptor;
+use DemoShop\Data\Repository\AdminAuthTokenRepository;
+use DemoShop\Data\Repository\AdminRepository;
+use DemoShop\Data\Repository\CategoryRepository;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\ValidateMiddleware;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Router\Router;
 use DemoShop\Presentation\Controller\AdminController;
 use DemoShop\Presentation\Controller\AuthController;
 use DemoShop\Presentation\Controller\CategoryController;
 use DemoShop\Presentation\Controller\ViewController;
-use DemoShop\Infrastructure\Router\Router;
-use DemoShop\Infrastructure\Request\Request;
-use DemoShop\Infrastructure\Response\HtmlResponse;
-use DemoShop\Business\Encryption\EncryptorInterface;
-use DemoShop\Data\Repository\AdminRepository;
-use DemoShop\Data\Repository\AdminAuthTokenRepository;
 use Dotenv\Dotenv;
-use Illuminate\Database\Capsule\Manager as Capsule;
 use Exception;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 /*
  * Responsible for initializing dependencies
@@ -47,21 +47,29 @@ class Bootstrap
         $dotenv = Dotenv::createImmutable(__DIR__);
         $dotenv->load();
 
-        self::initEncryption();
-        self::initEloquent();
+        try {
+            self::initEncryption();
+            self::initEloquent();
 
-        self::registerRepositories();
-        self::registerServices();
-        self::registerControllers();
+            self::registerRepositories();
+            self::registerServices();
+            self::registerControllers();
 
-        self::registerLoginMiddleware();
-        self::registerAuthorizeMiddleware();
-        self::registerAlreadyLoggedInMiddleware();
+            self::registerLoginMiddleware();
+            self::registerAuthorizeMiddleware();
+            self::registerAlreadyLoggedInMiddleware();
 
-        self::registerRoutes();
+            self::registerRoutes();
 
-        self::registerRequest();
+            self::registerRequest();
+        } catch (\Throwable $e) {
+            error_log("CRITICAL BOOTSTRAP FAILURE in init(): " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            if (!headers_sent()) {
+                HtmlResponse::createInternalServerError("A critical error occurred during application startup.")->view();
+            }
 
+            exit;
+        }
     }
 
     /**
@@ -71,15 +79,14 @@ class Bootstrap
      */
     private static function registerRepositories(): void
     {
-        ServiceRegistry::set(AdminRepositoryInterface::class,
-            new AdminRepository(ServiceRegistry::get(EncryptorInterface::class))
-        );
-        ServiceRegistry::set(CategoryRepositoryInterface::class,
-            new CategoryRepository()
-        );
-        ServiceRegistry::set(AdminAuthTokenRepositoryInterface::class,
-            new AdminAuthTokenRepository()
-        );
+        try {
+            ServiceRegistry::set(AdminRepositoryInterface::class, new AdminRepository());
+            ServiceRegistry::set(CategoryRepositoryInterface::class, new CategoryRepository());
+            ServiceRegistry::set(AdminAuthTokenRepositoryInterface::class, new AdminAuthTokenRepository());
+        } catch (\RuntimeException $e) {
+            error_log("Failed to register Repository in Bootstrap: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
@@ -89,41 +96,31 @@ class Bootstrap
      */
     private static function registerServices(): void
     {
-        ServiceRegistry::set(AuthServiceInterface::class,
-            new AuthService(
-                ServiceRegistry::get(AdminRepositoryInterface::class),
-                ServiceRegistry::get(AdminAuthTokenRepositoryInterface::class),
-                ServiceRegistry::get(EncryptorInterface::class)),
-        );
-        ServiceRegistry::set(CategoryServiceInterface::class,
-            new CategoryService(
-                ServiceRegistry::get(CategoryRepositoryInterface::class),
-            )
-        );
-        ServiceRegistry::set(DashboardServiceInterface::class,
-            new DashboardService()
-        );
+        try {
+            ServiceRegistry::set(AuthServiceInterface::class, new AuthService());
+            ServiceRegistry::set(CategoryServiceInterface::class, new CategoryService());
+            ServiceRegistry::set(DashboardServiceInterface::class, new DashboardService());
+        } catch (\RuntimeException $e) {
+            error_log("Failed to register Service in Bootstrap: " . $e->getMessage());
+            throw $e;
+        }
     }
 
     /**
      * Registers controllers
-     *
-     * @throws Exception
      */
     private static function registerControllers(): void
     {
-        ServiceRegistry::set(ViewController::class,
-            new ViewController()
-        );
-        ServiceRegistry::set(AdminController::class,
-            new AdminController(ServiceRegistry::get(DashboardServiceInterface::class)),
-        );
-        ServiceRegistry::set(AuthController::class,
-            new AuthController(ServiceRegistry::get(AuthServiceInterface::class)),
-        );
-        ServiceRegistry::set(CategoryController::class,
-            new CategoryController(ServiceRegistry::get(CategoryServiceInterface::class)),
-        );
+        try {
+            ServiceRegistry::set(ViewController::class, new ViewController());
+            ServiceRegistry::set(AdminController::class, new AdminController());
+            ServiceRegistry::set(AuthController::class, new AuthController());
+            ServiceRegistry::set(CategoryController::class, new CategoryController());
+        } catch (\RuntimeException $e) {
+            error_log("Failed to register Controller in Bootstrap: " . $e->getMessage());
+            throw $e;
+        }
+
     }
 
     /**
@@ -197,7 +194,6 @@ class Bootstrap
         } catch (Exception $e) {
             HtmlResponse::createInternalServerError()->view();
         }
-
         ServiceRegistry::set(Router::class, $router);
     }
 
@@ -245,15 +241,15 @@ class Bootstrap
      */
     private static function registerLoginMiddleware(): void
     {
-        $middleware = new ValidateMiddleware(
-            ServiceRegistry::get(AuthServiceInterface::class)
-        );
+        try {
+            $middleware = new ValidateMiddleware();
+            $middleware->linkWith(new AlreadyLoggedInMiddleware());
+            ServiceRegistry::set('adminLoginPipeline', $middleware);
+        } catch (\RuntimeException $e) {
+            error_log("Failed to register Middleware in Bootstrap: " . $e->getMessage());
+            throw $e;
+        }
 
-        $middleware
-            ->linkWith(new AlreadyLoggedInMiddleware(
-                ServiceRegistry::get(AuthServiceInterface::class)
-            ));
-        ServiceRegistry::set('adminLoginPipeline', $middleware);
     }
 
     /**
@@ -263,10 +259,14 @@ class Bootstrap
      */
     private static function registerAuthorizeMiddleware(): void
     {
-        $middleware = new AuthorizeMiddleware(
-            ServiceRegistry::get(AuthServiceInterface::class)
-        );
-        ServiceRegistry::set('adminAuthorizePipeline', $middleware);
+        try {
+            $middleware = new AuthorizeMiddleware();
+            ServiceRegistry::set('adminAuthorizePipeline', $middleware);
+        } catch (\RuntimeException $e) {
+            error_log("Failed to register Middleware in Bootstrap: " . $e->getMessage());
+            throw $e;
+        }
+
     }
 
     /**
@@ -276,9 +276,13 @@ class Bootstrap
      */
     private static function registerAlreadyLoggedInMiddleware(): void
     {
-        $middleware = new AlreadyLoggedInMiddleware(
-            ServiceRegistry::get(AuthServiceInterface::class)
-        );
-        ServiceRegistry::set('adminCheckLoginPipeline', $middleware);
+        try {
+            $middleware = new AlreadyLoggedInMiddleware();
+            ServiceRegistry::set('adminCheckLoginPipeline', $middleware);
+        } catch (\RuntimeException $e) {
+            error_log("Failed to register Middleware in Bootstrap: " . $e->getMessage());
+            throw $e;
+        }
+
     }
 }

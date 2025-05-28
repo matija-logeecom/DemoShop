@@ -2,11 +2,14 @@
 
 namespace DemoShop\Presentation\Controller;
 
-use DemoShop\Business\Service\DashboardServiceInterface;
-use DemoShop\Infrastructure\Response\JsonResponse;
+use DemoShop\Business\Interfaces\Service\DashboardServiceInterface;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\JsonResponse;
 use DemoShop\Infrastructure\Response\Response;
+use Exception;
+use RuntimeException;
 
 /*
  * Stores logic for handling Admin requests
@@ -18,12 +21,20 @@ class AdminController
 
     /**
      * Constructs Admin Controller instance
-     *
-     * @param DashboardServiceInterface $dashboardService
      */
-    public function __construct(DashboardServiceInterface $dashboardService)
+    public function __construct()
     {
-        $this->dashboardService = $dashboardService;
+        try {
+            $this->dashboardService = ServiceRegistry::get(DashboardServiceInterface::class);
+        } catch (Exception $e) {
+            error_log("CRITICAL: AdminController could not be initialized.
+             Failed to get DashboardService service. Original error: " . $e->getMessage());
+            throw new RuntimeException(
+                "AdminController failed to initialize due to a
+                 missing critical dependency.",
+                0, $e
+            );
+        }
     }
 
     public function adminPage(): Response
@@ -44,6 +55,6 @@ class AdminController
     {
         $data = $this->dashboardService->getDashboardData();
 
-        return new JsonResponse($data, 200, [], true);
+        return new JsonResponse($data, 200);
     }
 }

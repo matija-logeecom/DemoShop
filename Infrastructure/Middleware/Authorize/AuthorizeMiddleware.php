@@ -2,7 +2,9 @@
 
 namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\Business\Service\AuthServiceInterface;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Infrastructure\Cookie\CookieManager;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
@@ -17,9 +19,19 @@ class AuthorizeMiddleware extends Middleware
     private const DB_TOKEN_PREFIX = 'db_token:';
     private const SESSION_PAYLOAD_PREFIX = 'session_payload:';
 
-    public function __construct(AuthServiceInterface $authService)
+    public function __construct()
     {
-        $this->authService = $authService;
+        try {
+            $this->authService = ServiceRegistry::get(AuthServiceInterface::class);
+        } catch (\Exception $e) {
+            error_log("CRITICAL: AuthorizeMiddleware could not be initialized.
+             Failed to get AuthService service. Original error: " . $e->getMessage());
+            throw new \RuntimeException(
+                "AuthorizeMiddleware failed to initialize due to a
+                 missing critical dependency.",
+                0, $e
+            );
+        }
     }
 
     /**
@@ -49,15 +61,9 @@ class AuthorizeMiddleware extends Middleware
        }
 
        if ($adminId === null || $adminId <= 0) {
-           if (isset($_COOKIE[self::AUTH_COOKIE_NAME])) {
-               setcookie(self::AUTH_COOKIE_NAME, '', [
-                   'expires' => time() - 3600,
-                   'path' => '/',
-                   'domain' => '',
-                   'secure' => $request->getServer()['HTTPS'] ?? false,
-                   'httponly' => true,
-                   'samesite' => 'Lax'
-               ]);
+           if (CookieManager::getInstance()->get(self::AUTH_COOKIE_NAME) !== null) {
+               CookieManager::getInstance()->setEmptyCookie(self::AUTH_COOKIE_NAME,
+                   $request->getServer()['HTTPS']);
            }
            throw new Exception('You are not authorized to access this page.');
        }
