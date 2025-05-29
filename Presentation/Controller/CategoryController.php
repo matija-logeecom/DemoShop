@@ -48,7 +48,7 @@ class CategoryController
             $category = new Category(
                 title: trim($body['title'] ?? ''),
                 code: trim($body['code'] ?? '') ,
-                parent: trim($body['parent'] ?? ''),
+                parent: ($body['parent'] !== null ? trim($body['parent']) : null),
                 description: trim($body['description'] ?? ''),
             );
 
@@ -94,7 +94,7 @@ class CategoryController
             $category = new Category(
                 title: trim($body['title'] ?? ''),
                 code: trim($body['code'] ?? '') ,
-                parent: trim($body['parent'] ?? ''),
+                parent: ($body['parent'] !== null ? trim($body['parent']) : null),
                 description: trim($body['description'] ?? ''),
                 id: (int) $request->getRouteParam('id')
             );

@@ -185,4 +185,32 @@ class CategoryRepository implements CategoryRepositoryInterface
                 'An unexpected error occurred while tryting to delete descendants.', 0, $e);
         }
     }
+
+    public function findDirectChildrenByParentTitle(string $parentTitle): array
+    {
+        try {
+            $eloquentChildren = CategoryEntity::where('parent', $parentTitle)
+                ->orderBy('title')
+                ->get();
+
+            $businessModelChildren = [];
+            foreach ($eloquentChildren as $eloquentChild) {
+                $mappedChild = $this->mapEloquentToBusinessModel($eloquentChild);
+                if ($mappedChild) {
+                    $businessModelChildren[] = $mappedChild;
+                }
+            }
+            return $businessModelChildren;
+        } catch (QueryException $e) {
+            error_log("CategoryRepository::findDirectChildrenByParentTitle - " .
+                "DB query failed for parent title '{$parentTitle}'. Error: " . $e->getMessage());
+            throw new RuntimeException(
+                "Database error while finding child categories by parent title.", 0, $e);
+        } catch (Exception $e) {
+            error_log("CategoryRepository::findDirectChildrenByParentTitle - " .
+                "Unexpected error for parent title '{$parentTitle}'. Error: " . $e->getMessage());
+            throw new RuntimeException(
+                "An unexpected error occurred while finding child categories.", 0, $e);
+        }
+    }
 }

@@ -67,4 +67,13 @@ interface CategoryRepositoryInterface
      * @throws RuntimeException If a database error occurs.
      */
     public function findById(int $id): ?Category;
+
+    /**
+     * Finds all direct child categories based on the parent's title.
+     *
+     * @param string $parentTitle The title of the parent category.
+     * @return Category[] Returns an array of Category business model objects that are direct children.
+     * @throws RuntimeException If a database error occurs.
+     */
+    public function findDirectChildrenByParentTitle(string $parentTitle): array;
 }

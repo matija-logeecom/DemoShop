@@ -29,7 +29,6 @@ class CategoryService implements CategoryServiceInterface
                 0, $e
             );
         }
-
     }
 
     /**
@@ -78,6 +77,8 @@ class CategoryService implements CategoryServiceInterface
             $this->validateRequiredFields($category);
             $this->checkIfAlreadyExistsForUpdate($category);
             $this->checkIfChangesMade($category);
+            $this->checkIfNewParentIsDescendant($category);
+
             return $this->categoryRepository->updateCategory($category);
         } catch (InvalidCategoryDataException $e) {
             error_log("createCategory - A field is missing. Error: " . $e->getMessage());
@@ -170,6 +171,102 @@ class CategoryService implements CategoryServiceInterface
             throw new NoChangesMadeException(
                 "The submitted data for category {$category->getTitle()} " .
                 "is identical to the existing record. No update performed.");
+        }
+    }
+
+    /**
+     * Checks if a given category is a descendant of another category.
+     * This is a recursive function.
+     *
+     * @param int $potentialDescendantId
+     * @param int $potentialAncestorId
+     * @param array $allRawCategoriesData
+     *
+     * @return bool
+     */
+    private function isDescendantOf(int $potentialDescendantId, int $potentialAncestorId, array $allRawCategoriesData): bool
+    {
+        $maps = $this->buildCategoryMaps($allRawCategoriesData);
+        $categoryMapById = $maps['byId'];
+        $categoryMapByTitle = $maps['byTitle'];
+
+        $currentIdInTraversal = $potentialDescendantId;
+        $maxDepth = count($allRawCategoriesData) + 1;
+        $depth = 0;
+
+        while ($depth++ < $maxDepth) {
+            if (!isset($categoryMapById[$currentIdInTraversal])) {
+                return false;
+            }
+
+            $currentCategoryData = $categoryMapById[$currentIdInTraversal];
+            $parentTitle = $currentCategoryData['parent'] ?? null;
+            if ($parentTitle === null) {
+                return false;
+            }
+
+            $parentCategoryData = $categoryMapByTitle[$parentTitle];
+            $parentId = $parentCategoryData['id'] ?? null;
+            if ($parentId === null) {
+                return false;
+            }
+            if ($parentId === $potentialAncestorId) {
+                return true;
+            }
+
+            $currentIdInTraversal = $parentId;
+        }
+
+        return false;
+    }
+
+    private function buildCategoryMaps(array $allRawCategoriesData): array
+    {
+        $categoryMapById = [];
+        $categoryMapByTitle = [];
+        foreach ($allRawCategoriesData as $catData) {
+            if (isset($catData['id'])) {
+                $categoryMapById[$catData['id']] = $catData;
+            }
+            if (isset($catData['title'])) {
+                $categoryMapByTitle[$catData['title']] = $catData;
+            }
+        }
+
+        return ['byId' => $categoryMapById, 'byTitle' => $categoryMapByTitle];
+    }
+
+    private function checkIfNewParentIsDescendant(Category $category): void
+    {
+        $categoryIdBeingUpdated = $category->getId();
+        $newParentTitle = $category->getParent();
+
+        if ($newParentTitle === null) {
+            return;
+        }
+
+        $newParentCategoryObject = $this->categoryRepository->findByTitle($newParentTitle);
+
+        if ($newParentCategoryObject === null) {
+            throw new InvalidCategoryDataException(
+                "Specified parent category '{$newParentTitle}' does not exist.");
+        }
+
+        $newParentId = $newParentCategoryObject->getId();
+
+        if ($newParentId === $categoryIdBeingUpdated) {
+            throw new InvalidCategoryDataException("A category cannot be its own parent.");
+        }
+
+        $allRawCategoriesData = $this->categoryRepository->getCategories();
+
+        if ($this->isDescendantOf($newParentId, $categoryIdBeingUpdated, $allRawCategoriesData)) {
+            $currentCategory = $this->categoryRepository->findById($categoryIdBeingUpdated);
+            $currentCategoryTitle = $currentCategory ? $currentCategory->getTitle() : "ID {$categoryIdBeingUpdated}";
+            throw new InvalidCategoryDataException(
+                "Cannot set '{$newParentTitle}' as parent for '{$currentCategoryTitle}', " .
+                "since '{$newParentTitle}' is a descendant of '{$currentCategoryTitle}'"
+            );
         }
     }
 }

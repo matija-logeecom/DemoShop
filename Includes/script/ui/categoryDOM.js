@@ -1,6 +1,3 @@
-/**
- * Creates a form group (label + input/textarea).
- */
 export function createFormGroup(labelText, inputId, inputName,
                                 inputType = 'text',
                                 isTextarea = false, readOnly = true) {
@@ -20,9 +17,6 @@ export function createFormGroup(labelText, inputId, inputName,
     return { groupDiv: div, inputEl: inputElement };
 }
 
-/**
- * Creates a button element.
- */
 export function createButton(id, text, type = 'button', initiallyHidden = false) {
     const button = document.createElement('button');
     button.type = type;
@@ -32,9 +26,6 @@ export function createButton(id, text, type = 'button', initiallyHidden = false)
     return button;
 }
 
-/**
- * Renders the category tree.
- */
 export function renderCategoryTree(categoryTreeContainerEl, categoryTreeData,
                                    selectedCategory, onCategorySelect, allCategoriesFlat) {
     if (!categoryTreeContainerEl) return;
@@ -103,9 +94,6 @@ export function renderCategoryTree(categoryTreeContainerEl, categoryTreeData,
 }
 
 
-/**
- * Updates the category details panel UI elements.
- */
 export function updateDetailsPanelContent(elements, categoryData,
                                           isEditingOrCreating, formDataSet,
                                           getParentNameCallback, populateParentSelectCallback) {
@@ -151,11 +139,9 @@ export function updateDetailsPanelContent(elements, categoryData,
     }
 }
 
-/**
- * Populates the parent category select dropdown.
- */
 export function populateParentCategorySelect(categoryParentSelectEl, allCategoriesFlat,
-                                             editingCategoryId, currentParentName) {
+                                             editingCategoryId, currentParentName,
+                                             idsToExclude = []) {
     if (!categoryParentSelectEl) return;
     categoryParentSelectEl.innerHTML = '';
 
@@ -165,17 +151,20 @@ export function populateParentCategorySelect(categoryParentSelectEl, allCategori
     categoryParentSelectEl.appendChild(noParentOption);
 
     allCategoriesFlat.forEach(cat => {
-        if (String(cat.id) !== String(editingCategoryId)) {
-            const option = document.createElement('option');
-            const catName = cat.title;
-            option.value = catName;
-            option.textContent = catName;
-            if (catName === currentParentName) {
-                option.selected = true;
-            }
-            categoryParentSelectEl.appendChild(option);
+        if (idsToExclude.includes(cat.id)) {
+            return;
         }
+
+        const option = document.createElement('option');
+        const catName = cat.title;
+        option.value = catName;
+        option.textContent = catName;
+        if (catName === currentParentName) {
+            option.selected = true;
+        }
+        categoryParentSelectEl.appendChild(option);
     });
+
     if (currentParentName === null || currentParentName === undefined || currentParentName === "" ||
         (typeof currentParentName === 'string' && currentParentName.toLowerCase() === "root")) {
         categoryParentSelectEl.value = "null";
@@ -184,10 +173,6 @@ export function populateParentCategorySelect(categoryParentSelectEl, allCategori
     }
 }
 
-/**
- * Initializes the basic HTML structure for the product categories page.
- * Returns an object with references to key DOM elements.
- */
 export function initializePageStructure(wrapper) {
     const elements = {};
 
@@ -199,7 +184,6 @@ export function initializePageStructure(wrapper) {
     categoriesContainer.className = 'categories-container';
     wrapper.appendChild(categoriesContainer);
 
-    // Left Panel: Category Tree
     elements.categoryTreePanelEl = document.createElement('div');
     elements.categoryTreePanelEl.className = 'content-panel category-tree-panel';
     categoriesContainer.appendChild(elements.categoryTreePanelEl);
@@ -218,7 +202,6 @@ export function initializePageStructure(wrapper) {
     treeActionsDiv.appendChild(elements.addSubCategoryBtnEl);
     elements.categoryTreePanelEl.appendChild(treeActionsDiv);
 
-    // Right Panel: Category Details
     elements.categoryDetailsPanelEl = document.createElement('div');
     elements.categoryDetailsPanelEl.className = 'content-panel category-details-panel';
     categoriesContainer.appendChild(elements.categoryDetailsPanelEl);
@@ -231,7 +214,6 @@ export function initializePageStructure(wrapper) {
     elements.categoryFormEl.addEventListener('submit', (e) => e.preventDefault());
     elements.categoryDetailsPanelEl.appendChild(elements.categoryFormEl);
 
-    // Form Groups
     const titleGroup = createFormGroup(
         'Title:', 'pc_categoryTitle', 'title', 'text', false, true
     );
@@ -271,7 +253,6 @@ export function initializePageStructure(wrapper) {
     elements.categoryDescriptionInputEl = descriptionGroup.inputEl;
     elements.categoryFormEl.appendChild(descriptionGroup.groupDiv);
 
-    // Action Buttons for the Details Form
     const detailsActionsDiv = document.createElement('div');
     detailsActionsDiv.className = 'details-actions';
     elements.categoryFormEl.appendChild(detailsActionsDiv);
