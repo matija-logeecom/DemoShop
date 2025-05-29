@@ -7,6 +7,7 @@ use DemoShop\Infrastructure\Middleware\Exception\AlreadyLoggedInException;
 use DemoShop\Infrastructure\Middleware\Exception\AuthorizeException;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\RedirectionResponse;
 use DemoShop\Infrastructure\Response\Response;
 use DemoShop\Infrastructure\Middleware\Authorize\Middleware;
 use DemoShop\Infrastructure\Router\DTO\Route;
@@ -53,11 +54,13 @@ class RouteDispatcher
         } catch (AuthorizeException $e) {
             error_log("RouteDispatcher: Authorization required for route
              '{$matchedRoute->getPathPattern()}'. Error: " . $e->getMessage());
-            throw $e;
+            $response = new RedirectionResponse('/login');
+            $response->view();
         } catch (AlreadyLoggedInException $e) {
             error_log("RouteDispatcher: Already logged in.
              '{$matchedRoute->getPathPattern()}'. Error: " . $e->getMessage());
-            throw $e;
+            $response = new RedirectionResponse('/admin');
+            $response->view();
         } catch (Throwable $e) {
             error_log(
                 "RouteDispatcher: Unhandled exception during dispatch for route 

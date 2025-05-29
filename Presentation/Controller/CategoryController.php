@@ -2,7 +2,10 @@
 
 namespace DemoShop\Presentation\Controller;
 
+use DemoShop\Business\Exception\InvalidCategoryDataException;
+use DemoShop\Business\Exception\ResourceNotFoundException;
 use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
+use DemoShop\Business\Model\Category;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
@@ -40,14 +43,19 @@ class CategoryController
     public function createCategory(Request $request): Response
     {
         try {
-            $requestBody = $request->getBody();
-            $success = $this->categoryService->createCategory($requestBody);
+            $body = $request->getBody();
 
-            if (!$success) {
-                return HtmlResponse::createInternalServerError();
-            }
+            $category = new Category(
+                title: trim($body['title'] ?? ''),
+                code: trim($body['code'] ?? '') ,
+                parent: trim($body['parent'] ?? ''),
+                description: trim($body['description'] ?? ''),
+            );
 
+            $this->categoryService->createCategory($category);
             return new JsonResponse(['success' => true, 'message' => 'Category created successfully.'], 201);
+        } catch (InvalidCategoryDataException $e) {
+            return JsonResponse::createBadRequest($e->getMessage());
         } catch (RuntimeException $e) {
             return JsonResponse::createInternalServerError("Failed to create the category. Please try again later.");
         }
@@ -66,7 +74,8 @@ class CategoryController
         try {
             $categoriesData = $this->categoryService->getCategories();
             return new JsonResponse($categoriesData, 200);
-        } catch (Exception $e) {
+        } catch (RuntimeException $e) {
+            error_log("getCategories - Service operation failed: " . $e->getMessage());
             return JsonResponse::createInternalServerError("Failed to retrieve categories. Please try again later.");
         }
     }
@@ -81,35 +90,34 @@ class CategoryController
     public function updateCategory(Request $request): Response
     {
         try {
-            $requestBody = $request->getBody();$requestBody = $request->getBody();
-            $categoryId = $request->getRouteParam('id');
-            if (empty($categoryId)) {
-                error_log("updateCategory - Bad request: Category ID missing from route parameters.");
-                return JsonResponse::createBadRequest("Category ID is required in the URL for an update.");
-            }
+            $body = $request->getBody();
+            $category = new Category(
+                title: trim($body['title'] ?? ''),
+                code: trim($body['code'] ?? '') ,
+                parent: trim($body['parent'] ?? ''),
+                description: trim($body['description'] ?? ''),
+                id: (int) $request->getRouteParam('id')
+            );
 
-            // TODO This validation will be performed inside the service
-//            $requestBody['id'] = $categoryId;
-//            if (empty($requestBody['title']) &&
-//                empty($requestBody['code']) &&
-//                empty($requestBody['description']) &&
-//                !isset($requestBody['parent'])) {
-//                error_log("CategoryController::updateCategory - Bad request: No update data provided for category ID {$categoryId}.");
-//                return JsonResponse::createBadRequest("At least one field (title, code, description, parent) must be provided for update.");
-//            }
+            $this->categoryService->updateCategory($category);
 
-            $this->categoryService->updateCategory($requestBody);
-
-            return new JsonResponse(['id' => $categoryId, 'message' => 'Category updated successfully.'],
+            return new JsonResponse(['id' => $category->getId(), 'message' => 'Category updated successfully.'],
                 200);
+        } catch (InvalidCategoryDataException $e) {
+            $categoryIdParam = $request->getRouteParam('id') ?? 'N/A';
+            error_log("CategoryController::updateCategory -
+             Invalid data for ID {$categoryIdParam}. Error: " . $e->getMessage());
+            return JsonResponse::createBadRequest($e->getMessage());
+        } catch (ResourceNotFoundException $e) {
+            $categoryIdParam = $request->getRouteParam('id') ?? 'N/A';
+            error_log("CategoryController::updateCategory -
+             Resource not found for ID {$categoryIdParam}. Error: " . $e->getMessage());
+            return JsonResponse::createNotFound($e->getMessage());
         } catch (RuntimeException $e) {
-            $categoryId = $request->getRouteParam('id') ?? 'N/A';
-            error_log("CategoryController::updateCategory - Service operation failed for category ID {$categoryId}. Error: " . $e->getMessage());
-            if (str_contains(strtolower($e->getMessage()), 'not found')) {
-                return JsonResponse::createNotFound("Category with ID {$categoryId} not found.");
-            }
-
-            return JsonResponse::createInternalServerError("Failed to update the category. Please try again later.");
+            $categoryIdParam = $request->getRouteParam('id') ?? 'N/A';
+            error_log("CategoryController::updateCategory -
+             Service operation failed for ID {$categoryIdParam}. Error: " . $e->getMessage());
+            return JsonResponse::createInternalServerError("Failed to update the category due to a server issue.");
         }
     }
 
@@ -131,17 +139,15 @@ class CategoryController
             }
             $this->categoryService->deleteCategory($idToDelete);
 
-            return new JsonResponse(['id' => $idToDelete, 'message' => 'Category deleted successfully.'], 200);
+            return new JsonResponse(['id' => $idToDelete,
+                'message' => 'Category deleted successfully.'], 200);
+        } catch (ResourceNotFoundException $e) {
+            $idToDeleteParam = $request->getRouteParam('id') ?? 'N/A';
+            error_log("CategoryController::deleteCategory -
+             Resource not found for ID {$idToDeleteParam}. Error: " . $e->getMessage());
+            return JsonResponse::createNotFound($e->getMessage());
         } catch (RuntimeException $e) {
-            $idToDelete = $request->getRouteParam('id') ?? 'N/A';
-            error_log("deleteCategory - Service operation failed for category ID {$idToDelete}.
-             Error: " . $e->getMessage());
-
-            if (str_contains(strtolower($e->getMessage()), 'not found')) {
-                return JsonResponse::createNotFound("Category with ID {$idToDelete} not found.");
-            }
-
-            return JsonResponse::createInternalServerError("Failed to delete the category. Please try again later.");
+            return JsonResponse::createInternalServerError("Failed to delete the category due to a server issue.");
         }
     }
 }
