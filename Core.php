@@ -2,15 +2,11 @@
 
 namespace DemoShop;
 
-use DemoShop\Infrastructure\Bootstrap;
-use DemoShop\Infrastructure\DI\ServiceRegistry;
-use DemoShop\Infrastructure\Middleware\Exception\AlreadyLoggedInException;
-use DemoShop\Infrastructure\Middleware\Exception\AuthorizeException;
-use DemoShop\Infrastructure\Request\Request;
-use DemoShop\Infrastructure\Response\RedirectionResponse;
-use DemoShop\Infrastructure\Response\Response;
-use DemoShop\Infrastructure\Router\RouteDispatcher;
-use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\src\Infrastructure\Bootstrap;
+use DemoShop\src\Infrastructure\DI\ServiceRegistry;
+use DemoShop\src\Infrastructure\Request\Request;
+use DemoShop\src\Infrastructure\Response\HtmlResponse;
+use DemoShop\src\Infrastructure\Router\RouteDispatcher;
 use Dotenv\Dotenv;
 use Throwable;
 
@@ -27,7 +23,7 @@ class Core
             $dispatcher = ServiceRegistry::get(RouteDispatcher::class);
             $dispatcher->dispatch($request);
         } catch (Throwable $e) {
-            HtmlResponse::createInternalServerError();
+            HtmlResponse::createInternalServerError()->view();
         }
     }
 }
