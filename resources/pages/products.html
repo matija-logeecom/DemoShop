@@ -1,0 +1,104 @@
+<div id="product-list-view">
+    <h2>Products</h2>
+    <div class="product-actions-bar">
+        <button id="btn-add-new-product" class="admin-button">Add New Product</button>
+        <button id="btn-delete-selected-products" class="admin-button">Delete Selected</button>
+        <button id="btn-enable-selected-products" class="admin-button">Enable Selected</button>
+        <button id="btn-disable-selected-products" class="admin-button">Disable Selected</button>
+    </div>
+
+    <div class="content-panel">
+        <table class="products-table">
+            <thead>
+            <tr>
+                <th>Selected</th> <th>Title</th>
+                <th>SKU</th>
+                <th>Brand</th>
+                <th>Category</th>
+                <th>Short Description</th>
+                <th>Price</th>
+                <th>Enabled</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="products-table-body">
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination-controls">
+        <button id="btn-first-page" class="admin-button">&lt;&lt;&lt;</button>
+        <button id="btn-prev-page" class="admin-button">&lt;&lt;</button>
+        <span id="page-info">Page 1 / X</span>
+        <button id="btn-next-page" class="admin-button">&gt;&gt;</button>
+        <button id="btn-last-page" class="admin-button">&gt;&gt;&gt;</button>
+    </div>
+</div>
+
+<div id="add-product-view" class="view-hidden"> <h2>Add New Product</h2>
+    <div class="content-panel">
+        <form id="form-add-product">
+            <div class="form-columns-wrapper">
+                <div class="form-column-left">
+                    <div class="form-group">
+                        <label for="product-sku">SKU:</label>
+                        <input type="text" id="product-sku" name="sku" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-title">Title:</label>
+                        <input type="text" id="product-title" name="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-brand">Brand:</label>
+                        <input type="text" id="product-brand" name="brand">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-category">Category:</label>
+                        <select id="product-category" name="category">
+                            <option value="">Select Category</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-price">Price:</label>
+                        <input type="number" id="product-price" name="price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-short-description">Short Description:</label>
+                        <textarea id="product-short-description" name="short_description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-description">Description:</label>
+                        <textarea id="product-description" name="description" rows="5"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label></label> <div class="checkbox-area">
+                        <input type="checkbox" id="product-enabled" name="enabled" value="1">
+                        <label for="product-enabled" class="checkbox-label">Enabled in shop</label>
+                    </div>
+                    </div>
+                    <div class="form-group">
+                        <label></label> <div class="checkbox-area">
+                        <input type="checkbox" id="product-featured" name="featured" value="1">
+                        <label for="product-featured" class="checkbox-label">Featured product</label>
+                    </div>
+                    </div>
+                </div>
+
+                <div class="form-column-right">
+                    <div class="form-group-image-section">
+                        <label for="product-image" class="image-section-label">Image:</label>
+                        <div id="product-image-preview-container">
+                            <div id="product-image-preview">
+                                <span class="preview-text">Image Preview</span>
+                            </div>
+                            <input type="file" id="product-image" name="image" accept="image/*" class="image-upload-input">
+                            <div id="product-image-error" class="image-validation-error"></div> </div>
+                    </div>
+                </div>
+            </div> <div class="form-actions">
+            <button type="submit" id="btn-save-product" class="admin-button">Save Product</button>
+            <button type="button" id="btn-cancel-add-product" class="admin-button">Cancel</button>
+        </div>
+        </form>
+    </div>
+</div>

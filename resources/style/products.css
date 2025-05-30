@@ -1,0 +1,217 @@
+/* Utility class for hiding views */
+.view-hidden {
+    display: none !important;
+}
+
+#products-page-container .product-actions-bar {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Table styles */
+#products-page-container .products-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#products-page-container .products-table thead {
+    display: table-header-group;
+    background-color: #f8f9fa;
+}
+
+#products-page-container .products-table tbody {
+    display: table-row-group;
+}
+
+#products-page-container .products-table tr {
+    display: table-row;
+}
+#products-page-container .products-table tr:nth-child(even) {
+    background-color: #fdfdfd;
+}
+
+#products-page-container .products-table th,
+#products-page-container .products-table td {
+    display: table-cell;
+    border: 1px solid #e0e0e0;
+    padding: 10px 8px;
+    text-align: left;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+#products-page-container .products-table th {
+    font-weight: 600;
+    color: #343a40;
+}
+
+#products-page-container .products-table th:nth-child(1), /* Selected */
+#products-page-container .products-table td:nth-child(1) { /* Row Checkbox */
+    width: 8%; /* Adjusted width for "Selected" text */
+    text-align: left; /* For "Selected" header text */
+}
+#products-page-container .products-table td:nth-child(1) { /* Specifically for the checkbox cell in data rows */
+    text-align: center;
+}
+
+#products-page-container .products-table th:nth-child(2) { width: 20%; } /* Title */
+#products-page-container .products-table th:nth-child(3) { width: 10%; } /* SKU */
+#products-page-container .products-table th:nth-child(4) { width: 10%; } /* Brand */
+#products-page-container .products-table th:nth-child(5) { width: 15%; } /* Category */
+#products-page-container .products-table th:nth-child(6) { width: 17%; } /* Short Description (adjusted) */
+#products-page-container .products-table th:nth-child(7) { width: 10%; text-align: right; } /* Price */
+#products-page-container .products-table th:nth-child(8) { width: 5%; text-align: center; } /* Enabled */
+#products-page-container .products-table th:nth-child(9) { width: 5%; text-align: center; } /* Actions */
+
+
+#products-page-container .pagination-controls {
+    margin-top: 20px;
+    text-align: center;
+}
+#products-page-container .pagination-controls span {
+    margin: 0 10px;
+    vertical-align: middle;
+}
+
+/* Styles for the Add New Product Form View */
+#add-product-view h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 25px;
+    font-weight: 700;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+/* Two-column layout for the form */
+#add-product-view .form-columns-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 150px; /* Space between columns */
+}
+
+#add-product-view .form-column-left {
+    flex: 1.2; /* Left column takes more space */
+    display: flex;
+    flex-direction: column;
+}
+
+#add-product-view .form-column-right {
+    flex: 1; /* Right column (image) takes less space */
+    display: flex;
+    flex-direction: column;
+}
+
+#add-product-view .form-group {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+#add-product-view .form-group label:first-child:not(.checkbox-label) { /* Style for the main field label, excluding checkbox specific labels */
+    flex-basis: 140px; /* Adjusted label width */
+    flex-shrink: 0;
+    margin-right: 15px;
+    padding-top: 8px;
+    font-weight: 500;
+    color: #333;
+    box-sizing: border-box;
+}
+
+#add-product-view .form-group input[type="text"],
+#add-product-view .form-group input[type="number"],
+#add-product-view .form-group select,
+#add-product-view .form-group textarea,
+#add-product-view .form-group input[type="file"] {
+    flex-grow: 1;
+    width: auto;
+}
+
+#add-product-view .form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+/* Image section specific styling */
+#add-product-view .form-column-right .form-group-image-section {
+    display: flex;
+    flex-direction: column; /* Stack label, preview, input vertically */
+    align-items: flex-start; /* Align items to the start of the column */
+}
+#add-product-view .form-column-right .image-section-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    padding-top: 0; /* No extra top padding */
+    flex-basis: auto; /* Allow it to take its own width */
+}
+#add-product-view #product-image-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Make children (preview, input) stretch */
+    width: 100%; /* Take full width of the right column part allocated */
+}
+#add-product-view #product-image-preview {
+    max-width: 100%; /* Responsive within its container */
+    height: 200px; /* Keep fixed height or make it aspect ratio based */
+    border: 1px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    margin-bottom: 10px; /* Space between preview and file input */
+}
+#add-product-view #product-image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+#add-product-view #product-image-preview .preview-text {
+    color: #868e96;
+    font-size: 0.9em;
+}
+#add-product-view .image-upload-input {
+    width: 100%; /* Make file input take full available width */
+}
+
+
+/* Checkbox area styling */
+#add-product-view .form-group .checkbox-area {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    padding-top: 5px; /* Align with other inputs if label is empty */
+}
+#add-product-view .form-group input[type="checkbox"] {
+    margin-right: 8px;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+#add-product-view .form-group .checkbox-label {
+    font-weight: normal;
+    padding-top: 0;
+    flex-basis: auto;
+    margin-right: 0;
+}
+
+/* Form Actions */
+#add-product-view .form-actions {
+    margin-top: 25px;
+    padding-left: 0; /* Remove previous padding if buttons are full width or left aligned */
+    text-align: left; /* As per screenshot image_75958f.png */
+    border-top: 1px solid #e0e0e0; /* Optional: separator line */
+    padding-top: 20px; /* Space above buttons */
+}
+
+#add-product-view .image-validation-error {
+    color: #dc3545; /* Bootstrap's danger color for errors */
+    font-size: 0.875em;
+    margin-top: 8px;
+    min-height: 1.2em; /* Reserve space even when no error */
+    text-align: left; /* Align error text to the left */
+}
