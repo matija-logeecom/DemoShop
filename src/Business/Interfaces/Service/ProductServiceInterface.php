@@ -4,7 +4,9 @@ namespace DemoShop\Business\Interfaces\Service;
 
 use DemoShop\Business\Exception\FileUploadException;
 use DemoShop\Business\Exception\ValidationException;
-use DemoShop\Business\Model\Product; // Eloquent Model
+use DemoShop\Business\Model\Product;
+use Exception;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 interface ProductServiceInterface
 {
@@ -15,9 +17,11 @@ interface ProductServiceInterface
      * @return bool The created Product model instance.
      * @throws ValidationException If validation fails.
      * @throws FileUploadException If file processing fails.
-     * @throws \Exception For other errors during product creation.
+     * @throws Exception For other errors during product creation.
      */
     public function createProduct(Product $product): bool;
+
+    public function getProducts(int $page = 1, int $perPage = 10): LengthAwarePaginator;
 
     // Future methods could include:
     // public function getProductById(int $id): ?Product;

@@ -19,7 +19,7 @@ interface ProductRepositoryInterface
      */
     public function create(array $productData): bool;
 
-//    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator; // <-- ADD THIS METHOD
+    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator; // <-- ADD THIS METHOD
 
     // Future methods could include:
     // public function findById(int $id): ?Product;

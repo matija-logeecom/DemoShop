@@ -2,6 +2,7 @@
 
 namespace DemoShop\Business\Service;
 
+use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
 use DemoShop\Business\Interfaces\Repository\ProductRepositoryInterface;
 // TODO: Uncomment when CategoryRepositoryInterface is used for category validation
 // use DemoShop\src\Business\Interfaces\Repository\CategoryRepositoryInterface;
@@ -11,13 +12,18 @@ use DemoShop\Data\Model\Product as ProductEloquentModel;
 use DemoShop\Business\Exception\ValidationException;
 use DemoShop\Business\Exception\FileUploadException;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProductService implements ProductServiceInterface
 {
     private ProductRepositoryInterface $productRepository;
-    // TODO: private CategoryRepositoryInterface $categoryRepository;
+    private CategoryRepositoryInterface $categoryRepository;
     private string $physicalImageUploadPath;
     private string $imageUrlBasePath;
+    private ?array $allCategoriesCache = null;
+    private ?array $categoriesByIdCache = null;
+    private ?array $categoriesByTitleCache = null;
+
 
     public function __construct(
         // TODO: CategoryRepositoryInterface $categoryRepository, // For validating category_id
@@ -25,6 +31,7 @@ class ProductService implements ProductServiceInterface
         string $imageUrlBasePath
     ) {
         $this->productRepository = ServiceRegistry::get(ProductRepositoryInterface::class);
+        $this->categoryRepository = ServiceRegistry::get(CategoryRepositoryInterface::class);
         // TODO: $this->categoryRepository = $categoryRepository;
         $this->physicalImageUploadPath = rtrim($physicalImageUploadPath, '/');
         $this->imageUrlBasePath = rtrim($imageUrlBasePath, '/');
@@ -65,6 +72,70 @@ class ProductService implements ProductServiceInterface
         ];
 
         return $this->productRepository->create($dataForRepository);
+    }
+
+    public function getProducts(int $page = 1, int $perPage = 10): LengthAwarePaginator
+    {
+        $paginatedResult = $this->productRepository->getAll($page, $perPage);
+
+        $this->loadAndCacheCategories();
+
+        $paginatedResult->getCollection()->transform(function ($product) {
+            if ($product->category_id && $this->categoriesByIdCache) {
+                $product->category_hierarchy_display = $this->getCategoryHierarchyString(
+                    $product->category_id
+                );
+            } else {
+                $product->category_hierarchy_display = 'N/A';
+            }
+            return $product;
+        });
+
+        return $paginatedResult;
+    }
+
+    /**
+     * Loads all categories from the CategoryService and caches them as maps.
+     */
+    private function loadAndCacheCategories(): void
+    {
+        if ($this->allCategoriesCache === null) {
+            $this->allCategoriesCache = $this->categoryRepository->getCategories(); // Returns array of arrays
+            $this->categoriesByIdCache = [];
+            $this->categoriesByTitleCache = [];
+
+            foreach ($this->allCategoriesCache as $category) {
+                if (isset($category['id'])) {
+                    $this->categoriesByIdCache[$category['id']] = $category;
+                }
+                if (isset($category['title'])) {
+                    // Assuming titles are unique enough to be keys for parent lookup.
+                    // If not, this strategy needs refinement or parent lookup by ID.
+                    $this->categoriesByTitleCache[$category['title']] = $category;
+                }
+            }
+        }
+    }
+
+    private function getCategoryHierarchyString(int $categoryId): string
+    {
+        $pathParts = [];
+        $currentCatId = $categoryId;
+
+        while ($currentCatId !== null && isset($this->categoriesByIdCache[$currentCatId])) {
+            $category = $this->categoriesByIdCache[$currentCatId];
+            array_unshift($pathParts, $category['title']); // Add to the beginning of the path
+
+            $parentTitle = $category['parent'] ?? null; // 'parent' field stores the parent's title
+
+            if ($parentTitle && isset($this->categoriesByTitleCache[$parentTitle])) {
+                $currentCatId = $this->categoriesByTitleCache[$parentTitle]['id'];
+            } else {
+                $currentCatId = null; // No more parents or parent not found
+            }
+        }
+
+        return implode(' > ', $pathParts);
     }
 
     /**
@@ -159,7 +230,8 @@ class ProductService implements ProductServiceInterface
         // File is valid, proceed to move
         if (!is_dir($this->physicalImageUploadPath)) {
             if (!@mkdir($this->physicalImageUploadPath, 0775, true)) {
-                throw new FileUploadException("Failed to create image upload directory: " . $this->physicalImageUploadPath);
+                throw new FileUploadException("Failed to create image upload directory: "
+                    . $this->physicalImageUploadPath);
             }
         }
         if (!is_writable($this->physicalImageUploadPath)) {
@@ -168,7 +240,8 @@ class ProductService implements ProductServiceInterface
 
         $originalFilename = $fileInfo['name'];
         $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
-        $safeFilenamePart = preg_replace('/[^a-zA-Z0-9_-]/', '_', pathinfo($originalFilename, PATHINFO_FILENAME));
+        $safeFilenamePart = preg_replace(
+            '/[^a-zA-Z0-9_-]/', '_', pathinfo($originalFilename, PATHINFO_FILENAME));
         $uniqueFilename = $safeFilenamePart . '_' . uniqid() . '.' . $extension;
         $destinationPath = $this->physicalImageUploadPath . '/' . $uniqueFilename;
 

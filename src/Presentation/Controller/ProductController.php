@@ -10,6 +10,7 @@ use DemoShop\Business\Model\Product;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Business\Exception\ValidationException;
 use DemoShop\Business\Exception\FileUploadException;
+use Exception;
 use RuntimeException; // For constructor dependency issue
 
 class ProductController
@@ -97,6 +98,22 @@ class ProductController
         } catch (\Exception $e) {
             error_log("Exception in ProductController::createProduct: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
             return new JsonResponse(['success' => false, 'message' => 'An unexpected error occurred while creating the product.'], 500);
+        }
+    }
+
+    public function getProducts(Request $request): Response
+    {
+        try {
+            $queryParams = $request->getQuery();
+            $page = isset($queryParams['page']) && is_numeric($queryParams['page']) ? (int)$queryParams['page'] : 1;
+            $perPage = 10;
+
+            $paginatedProducts = $this->productService->getProducts($page, $perPage);
+
+            return new JsonResponse($paginatedProducts, 200);
+        } catch (Exception $e) {
+            error_log("Exception in ProductController::getProducts: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+            return new JsonResponse(['success' => false, 'message' => 'Failed to retrieve products.'], 500);
         }
     }
 }

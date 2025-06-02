@@ -22,5 +22,19 @@ export class ProductService {
         return this.ajaxService.postWithFormData(`${this.apiBaseUrl}/product/create`, formData);
     }
 
+    /**
+     * Fetches a paginated list of products.
+     * @param {number} page - The page number to fetch.
+     * @param {number} perPage - Number of items per page.
+     * @returns {Promise<Object>} The paginated response from the server.
+     * Expected response structure: { data: [], current_page: 1, last_page: 5, total: 50, ... }
+     */
+    async getProducts(page = 1, perPage = 10) { // Defaulting perPage to 10
+        // The backend controller's getProducts method takes 'page' from query params.
+        // The perPage is hardcoded to 10 on the backend for now.
+        // We can add perPage to the query if the backend supports it: `${this.apiBaseUrl}/products?page=${page}&perPage=${perPage}`
+        return this.ajaxService.get(`${this.apiBaseUrl}/products?page=${page}`);
+    }
+
     // We will add other methods here later (getProducts, deleteProduct, etc.)
 }

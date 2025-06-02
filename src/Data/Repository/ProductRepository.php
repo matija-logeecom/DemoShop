@@ -34,5 +34,18 @@ class ProductRepository implements ProductRepositoryInterface
         // return false;
     }
 
+    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator
+    {
+        try {
+            return Product::orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+        } catch (QueryException $e) {
+            error_log("getAll - Database query failed: " . $e->getMessage());
+            throw new RuntimeException("Failed to retrieve products due to a database error.", 0, $e);
+        } catch (Exception $e) {
+            error_log("getAll - An unexpected error occurred: " . $e->getMessage());
+            throw new RuntimeException("An unexpected error occurred while retrieving products.", 0, $e);
+        }
+    }
+
     // ... other future methods ...
 }

@@ -85,5 +85,12 @@ class RouteConfig
             '/api/product/create',
             [ProductController::class, 'createProduct']
         );
+
+        RouteRegistry::add(
+            'GET',
+            '/api/products',
+            [ProductController::class, 'getProducts'],
+            [AuthorizeMiddleware::class]
+        );
     }
 }

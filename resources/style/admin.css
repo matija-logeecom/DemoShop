@@ -25,6 +25,7 @@ body {
 
 .sidebar {
     width: 220px;
+    flex-shrink: 0;
     background-color: #e9ecef;
     padding: 20px 15px;
     border-right: 1px solid #dee2e6;
