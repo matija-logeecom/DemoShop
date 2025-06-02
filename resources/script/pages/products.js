@@ -16,7 +16,7 @@ export function showProducts() {
     currentContainer = wrapper;
     currentProductServiceInstance = new ProductService();
 
-    fetch('/resources/pages/products.html') // Path to your HTML structure
+    fetch('/resources/pages/products.html') // Config to your HTML structure
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

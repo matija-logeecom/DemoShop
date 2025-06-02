@@ -2,11 +2,13 @@
 
 namespace DemoShop\Business\Service;
 
+use DemoShop\Business\Exception\CategoryInUseException;
 use DemoShop\Business\Exception\InvalidCategoryDataException;
 use DemoShop\Business\Exception\MissingCategoryFieldException;
 use DemoShop\Business\Exception\NoChangesMadeException;
 use DemoShop\Business\Exception\ResourceNotFoundException;
 use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\ProductRepositoryInterface;
 use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
 use DemoShop\Business\Model\Category;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
@@ -16,11 +18,13 @@ use RuntimeException;
 class CategoryService implements CategoryServiceInterface
 {
     private CategoryRepositoryInterface $categoryRepository;
+    private ProductRepositoryInterface $productRepository;
 
     public function __construct()
     {
         try {
             $this->categoryRepository = ServiceRegistry::get(CategoryRepositoryInterface::class);
+            $this->productRepository = ServiceRegistry::get(ProductRepositoryInterface::class);
         } catch (Exception $e) {
             error_log("CRITICAL: CategoryService could not be initialized. " .
                 "Failed to get CategoryRepository service. Original error: " . $e->getMessage());
@@ -100,6 +104,19 @@ class CategoryService implements CategoryServiceInterface
      */
     public function deleteCategory(int $id): bool
     {
+        $allCategoriesData = $this->categoryRepository->getCategories();
+        $categoryAndDescendantIds = $this->collectCategoryAndDescendantIds($id, $allCategoriesData);
+
+        if (empty($categoryAndDescendantIds)) {
+            throw new ResourceNotFoundException("Category with id {$id} not found.");
+        }
+
+        $hasProducts = $this->productRepository->hasProductsInCategories($categoryAndDescendantIds);
+        if ($hasProducts) {
+            throw new CategoryInUseException("Cannot delete category ID {$id} " .
+                " as it or its subcategories contain products.");
+        }
+
         try {
             return $this->categoryRepository->deleteCategory($id);
         } catch (ResourceNotFoundException $e) {
@@ -111,6 +128,48 @@ class CategoryService implements CategoryServiceInterface
                 "deleteCategory - Failed for category ID {$id} due to repository error: " . $e->getMessage());
             throw new RuntimeException("Failed to delete category.", 0, $e);
         }
+    }
+
+    /**
+     * Collects the target category ID and all its descendant IDs.
+     *
+     * @param int $targetCategoryId
+     * @param array $allCategoriesData
+     * @return array
+     */
+    private function collectCategoryAndDescendantIds(int $targetCategoryId, array $allCategoriesData): array
+    {
+        $maps = $this->buildCategoryMaps($allCategoriesData);
+        $categoriesById = $maps['byId'] ?? [];
+
+        $idsToProcess = [$targetCategoryId];
+        $collectedIds = [];
+        $visitedForQueue = [];
+
+        while (!empty($idsToProcess)) {
+            $currentId = array_shift($idsToProcess);
+            if (!isset($categoriesById[$currentId]) || isset($collectedIds[$currentId])) {
+                continue;
+            }
+
+            $collectedIds[$currentId] = $currentId;
+            $currentCategory = $categoriesById[$currentId];
+
+            $currentCategoryTitle = $currentCategory['title'] ?? null;
+            if ($currentCategoryTitle === null) continue;
+
+            foreach ($allCategoriesData as $potentialChild) {
+                if (isset($potentialChild['parent'], $potentialChild['id']) &&
+                    $potentialChild['parent'] === $currentCategoryTitle) {
+                    if (!isset($visitedForQueue[$potentialChild['id']])) {
+                        $idsToProcess[] = $potentialChild['id'];
+                        $visitedForQueue[$potentialChild['id']] = true;
+                    }
+                }
+            }
+        }
+
+        return array_values($collectedIds);
     }
 
     /**

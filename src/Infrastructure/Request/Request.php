@@ -152,4 +152,14 @@ class Request
     {
         $this->routeParams = $params;
     }
+
+    /**
+     * @param string $file
+     *
+     * @return array|null
+     */
+    public function getFileInfo(string $file): ?array
+    {
+        return $_FILES[$file] ?? null;
+    }
 }

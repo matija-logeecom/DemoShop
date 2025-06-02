@@ -4,13 +4,11 @@ namespace DemoShop\Business\Service;
 
 use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
 use DemoShop\Business\Interfaces\Repository\ProductRepositoryInterface;
-// TODO: Uncomment when CategoryRepositoryInterface is used for category validation
-// use DemoShop\src\Business\Interfaces\Repository\CategoryRepositoryInterface;
 use DemoShop\Business\Interfaces\Service\ProductServiceInterface;
 use DemoShop\Business\Model\Product;
-use DemoShop\Data\Model\Product as ProductEloquentModel;
 use DemoShop\Business\Exception\ValidationException;
 use DemoShop\Business\Exception\FileUploadException;
+use DemoShop\Infrastructure\Config\PathConfig;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -25,16 +23,12 @@ class ProductService implements ProductServiceInterface
     private ?array $categoriesByTitleCache = null;
 
 
-    public function __construct(
-        // TODO: CategoryRepositoryInterface $categoryRepository, // For validating category_id
-        string $physicalImageUploadPath,
-        string $imageUrlBasePath
-    ) {
+    public function __construct() {
         $this->productRepository = ServiceRegistry::get(ProductRepositoryInterface::class);
         $this->categoryRepository = ServiceRegistry::get(CategoryRepositoryInterface::class);
-        // TODO: $this->categoryRepository = $categoryRepository;
-        $this->physicalImageUploadPath = rtrim($physicalImageUploadPath, '/');
-        $this->imageUrlBasePath = rtrim($imageUrlBasePath, '/');
+
+        $this->physicalImageUploadPath = ServiceRegistry::get(PathConfig::class)->getProductImagePhysicalPath();
+        $this->imageUrlBasePath = ServiceRegistry::get(PathConfig::class)->getProductImageUrlBase();
     }
 
     /**
@@ -52,11 +46,10 @@ class ProductService implements ProductServiceInterface
 
         if ($fileInfo && isset($fileInfo['tmp_name']) && $fileInfo['error'] === UPLOAD_ERR_OK) {
             $imagePathForDb = $this->processImageUpload($fileInfo);
-        } elseif ($fileInfo && $fileInfo['error'] !== UPLOAD_ERR_NO_FILE) {
-            // Handle other $_FILES errors if a file was attempted but failed system checks
+        }
+        if ($fileInfo && $fileInfo['error'] !== UPLOAD_ERR_NO_FILE && $fileInfo['error'] !== UPLOAD_ERR_OK) {
             throw new FileUploadException("File upload system error. Code: " . $fileInfo['error']);
         }
-        // Note: You might decide an image is mandatory and throw a ValidationException if $imagePathForDb is null.
 
         $dataForRepository = [
             'sku' => $product->getSku(),
@@ -74,6 +67,9 @@ class ProductService implements ProductServiceInterface
         return $this->productRepository->create($dataForRepository);
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getProducts(int $page = 1, int $perPage = 10): LengthAwarePaginator
     {
         $paginatedResult = $this->productRepository->getAll($page, $perPage);
@@ -82,89 +78,86 @@ class ProductService implements ProductServiceInterface
 
         $paginatedResult->getCollection()->transform(function ($product) {
             if ($product->category_id && $this->categoriesByIdCache) {
-                $product->category_hierarchy_display = $this->getCategoryHierarchyString(
-                    $product->category_id
-                );
+                $product->category_hierarchy_display = $this->getCategoryHierarchyString($product->category_id);
             } else {
                 $product->category_hierarchy_display = 'N/A';
             }
+
             return $product;
         });
 
         return $paginatedResult;
+
     }
 
     /**
      * @inheritDoc
      */
-    public function deleteProducts(array $productIds): int // <-- IMPLEMENT THIS METHOD
+    public function deleteProducts(array $productIds): int
     {
         if (empty($productIds)) {
             return 0;
         }
 
-        // Validate IDs are integers
-        $validatedIds = [];
-        foreach ($productIds as $id) {
-            if (filter_var($id, FILTER_VALIDATE_INT) && (int)$id > 0) {
-                $validatedIds[] = (int)$id;
-            } else {
-                // Or collect errors and throw ValidationException
-                error_log("ProductService::deleteProducts - Invalid product ID provided: " . $id);
-            }
-        }
+        $validatedIds = $this->validateIds($productIds);
 
-        if (empty($validatedIds)) {
-            // Optionally throw ValidationException if all IDs were invalid or none provided.
-            // For now, just return 0 if no valid IDs after filtering.
-            return 0;
-        }
-
-        // 1. Fetch products to get image paths
         $productsToDelete = $this->productRepository->findByIds($validatedIds);
 
-        // 2. Delete image files
         foreach ($productsToDelete as $product) {
             if (!empty($product->image_path)) {
                 $this->removeImage($product);
             }
         }
-        // 3. Delete product records from database
+
         return $this->productRepository->deleteByIds($validatedIds);
     }
 
     /**
      * @inheritDoc
      */
-    public function updateProductsEnabledStatus(array $productIds, bool $newStatus): int // <-- IMPLEMENT THIS METHOD
+    public function updateProductsEnabledStatus(array $productIds, bool $newStatus): int
     {
         if (empty($productIds)) {
-            return 0;
+            throw new ValidationException('No product ids provided.');
         }
 
-        $validatedIds = [];
-        $errors = [];
-        foreach ($productIds as $id) {
-            if (filter_var($id, FILTER_VALIDATE_INT) && (int)$id > 0) {
-                $validatedIds[] = (int)$id;
-            } else {
-                $errors['ids'] = 'One or more product IDs are invalid.';
-                error_log(
-                    "updateProductsEnabledStatus - Invalid product ID provided: " . print_r($id, true));
-            }
-        }
-
-        if (!empty($errors)) {
-            throw new ValidationException("Invalid input for updating product status.", $errors);
-        }
-
-        if (empty($validatedIds)) {
-            return 0;
-        }
+        $validatedIds = $this->validateIds($productIds);
 
         return $this->productRepository->updateIsEnabledStatus($validatedIds, $newStatus);
     }
 
+    /**
+     * Returns an array of validated Ids
+     *
+     * @param array $productIds
+     *
+     * @return array
+     *
+     * @throws ValidationException
+     */
+    private function validateIds(array $productIds): array
+    {
+        $validatedIds = [];
+        foreach ($productIds as $id) {
+            if (filter_var($id, FILTER_VALIDATE_INT) && (int)$id > 0) {
+                $validatedIds[] = (int)$id;
+            }
+        }
+
+        if (empty($validatedIds)) {
+            throw new ValidationException("Invalid input for updating product ids.");
+        }
+
+        return $validatedIds;
+    }
+
+    /**
+     * Removes image from filesystem of provided product
+     *
+     * @param mixed $product
+     *
+     * @return void
+     */
     private function removeImage(mixed $product): void
     {
         $filename = basename($product->image_path);
@@ -172,7 +165,8 @@ class ProductService implements ProductServiceInterface
 
         if (file_exists($physicalFilePath)) {
             if (!@unlink($physicalFilePath)) {
-                error_log("ProductService::deleteProducts - Failed to delete image file: " . $physicalFilePath);
+                error_log(
+                    "ProductService::deleteProducts - Failed to delete image file: " . $physicalFilePath);
             }
         }
     }
@@ -182,24 +176,31 @@ class ProductService implements ProductServiceInterface
      */
     private function loadAndCacheCategories(): void
     {
-        if ($this->allCategoriesCache === null) {
-            $this->allCategoriesCache = $this->categoryRepository->getCategories(); // Returns array of arrays
-            $this->categoriesByIdCache = [];
-            $this->categoriesByTitleCache = [];
+        if ($this->allCategoriesCache !== null) {
+            return;
+        }
 
-            foreach ($this->allCategoriesCache as $category) {
-                if (isset($category['id'])) {
-                    $this->categoriesByIdCache[$category['id']] = $category;
-                }
-                if (isset($category['title'])) {
-                    // Assuming titles are unique enough to be keys for parent lookup.
-                    // If not, this strategy needs refinement or parent lookup by ID.
-                    $this->categoriesByTitleCache[$category['title']] = $category;
-                }
+        $this->allCategoriesCache = $this->categoryRepository->getCategories();
+        $this->categoriesByIdCache = [];
+        $this->categoriesByTitleCache = [];
+
+        foreach ($this->allCategoriesCache as $category) {
+            if (isset($category['id'])) {
+                $this->categoriesByIdCache[$category['id']] = $category;
+            }
+            if (isset($category['title'])) {
+                $this->categoriesByTitleCache[$category['title']] = $category;
             }
         }
     }
 
+    /**
+     * Returns the product category hierarchy as string
+     *
+     * @param int $categoryId
+     *
+     * @return string
+     */
     private function getCategoryHierarchyString(int $categoryId): string
     {
         $pathParts = [];
@@ -207,15 +208,13 @@ class ProductService implements ProductServiceInterface
 
         while ($currentCatId !== null && isset($this->categoriesByIdCache[$currentCatId])) {
             $category = $this->categoriesByIdCache[$currentCatId];
-            array_unshift($pathParts, $category['title']); // Add to the beginning of the path
+            array_unshift($pathParts, $category['title']);
 
-            $parentTitle = $category['parent'] ?? null; // 'parent' field stores the parent's title
+            $parentTitle = $category['parent'] ?? null;
 
-            if ($parentTitle && isset($this->categoriesByTitleCache[$parentTitle])) {
-                $currentCatId = $this->categoriesByTitleCache[$parentTitle]['id'];
-            } else {
-                $currentCatId = null; // No more parents or parent not found
-            }
+            $currentCatId = $parentTitle && isset($this->categoriesByTitleCache[$parentTitle])
+                ? $this->categoriesByTitleCache[$parentTitle]['id']
+                : null;
         }
 
         return implode(' > ', $pathParts);
@@ -223,8 +222,10 @@ class ProductService implements ProductServiceInterface
 
     /**
      * Validates the product input data from the DTO.
+     *
      * @param Product $product
-     * @return array Associative array of validation errors. Empty if valid.
+     *
+     * @return array
      */
     private function validateProductInput(Product $product): array
     {
@@ -232,12 +233,11 @@ class ProductService implements ProductServiceInterface
 
         if (empty(trim($product->getSku()))) {
             $errors['sku'] = 'SKU is required.';
-        } //else {
-            // TODO: Implement SKU uniqueness check using $this->productRepository->findBySku($product->getSku())
-            // if ($this->productRepository->findBySku($product->getSku()) !== null) {
-            //     $errors['sku'] = 'SKU already exists.';
-            // }
-       // }
+        }
+        if (!empty(trim($product->getSku())) &&
+            $this->productRepository->findBySku($product->getSku()) !== null) {
+            $errors['sku'] = 'Product with same SKU already exists';
+        }
 
         if (empty(trim($product->getTitle()))) {
             $errors['title'] = 'Title is required.';
@@ -247,45 +247,79 @@ class ProductService implements ProductServiceInterface
             $errors['price'] = 'Price must be a non-negative number.';
         }
 
-        if ($product->getCategoryId() === null || !filter_var($product->getCategoryId(), FILTER_VALIDATE_INT) || $product->getCategoryId() <= 0) {
+        if ($product->getCategoryId() === null ||
+            !filter_var($product->getCategoryId(), FILTER_VALIDATE_INT) ||
+            $product->getCategoryId() <= 0) {
             $errors['category_id'] = 'A valid category is required.';
-        } //else {
-            // TODO: Validate category_id existence using $this->categoryRepository->findById($product->getCategoryId())
-            // if ($this->categoryRepository->findById($product->getCategoryId()) === null) {
-            //    $errors['category_id'] = 'Selected category does not exist.';
-            // }
-       // }
-        // Add more validation as needed (e.g., max lengths, specific formats)
+        }
 
         return $errors;
     }
 
     /**
-     * Processes the uploaded image file: validates, moves, and returns its storable path.
-     * @param array $fileInfo The $_FILES entry for the uploaded image.
-     * @return string|null The relative path to the stored image, or null on failure.
+     * Orchestrates the image upload process
+     *
+     * @param array $fileInfo
+     *
+     * @return string|null
+     *
      * @throws FileUploadException|ValidationException
      */
     private function processImageUpload(array $fileInfo): ?string
     {
-        $errors = [];
-
-        // Check for upload errors provided by PHP
-        if ($fileInfo['error'] !== UPLOAD_ERR_OK) {
-            throw new FileUploadException("File upload error. Code: " . $fileInfo['error']);
-        }
+        $this->validateInitialUpload($fileInfo);
 
         $tempFilePath = $fileInfo['tmp_name'];
-        $imageInfo = @getimagesize($tempFilePath);
+        $imageDetails = $this->getImageDetails($tempFilePath);
 
+        $this->validateImageContent($imageDetails['width'], $imageDetails['height'], $imageDetails['mime']);
+
+        $this->ensureUploadDirectoryExistsAndWritable();
+
+        $uniqueFilename = $this->generateUniqueFilename($fileInfo['name']);
+        $destinationPath = $this->physicalImageUploadPath . '/' . $uniqueFilename;
+
+        $this->moveUploadedImage($tempFilePath, $destinationPath);
+
+        return $this->imageUrlBasePath . '/' . $uniqueFilename;
+    }
+
+    /**
+     * Validates initial PHP file upload status.
+     *
+     * @throws FileUploadException
+     */
+    private function validateInitialUpload(array $fileInfo): void
+    {
+        if ($fileInfo['error'] !== UPLOAD_ERR_OK) {
+            throw new FileUploadException("System file upload error. Code: " . $fileInfo['error']);
+        }
+    }
+
+    /**
+     * Gets image details (width, height, mime)
+     * .
+     * @throws ValidationException if file is not a valid image.
+     */
+    private function getImageDetails(string $tempFilePath): array
+    {
+        $imageInfo = @getimagesize($tempFilePath);
         if ($imageInfo === false) {
-            throw new ValidationException("Uploaded file is not a valid image.", ['image_format' => 'Invalid image format.']);
+            throw new ValidationException("Uploaded file is not a valid image or format is not supported.",
+                ['image_format' => 'Invalid image format.']);
         }
 
-        $width = $imageInfo[0];
-        $height = $imageInfo[1];
-        $mime = $imageInfo['mime'];
+        return ['width' => $imageInfo[0], 'height' => $imageInfo[1], 'mime' => $imageInfo['mime']];
+    }
 
+    /**
+     * Validates image content properties (mime, width, height, aspect ratio).
+     *
+     * @throws ValidationException
+     */
+    private function validateImageContent(int $width, int $height, string $mime): void
+    {
+        $errors = [];
         $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!in_array($mime, $allowedMimes)) {
             $errors['image_type'] = 'Invalid image type. Allowed: JPEG, PNG, GIF, WebP.';
@@ -295,43 +329,65 @@ class ProductService implements ProductServiceInterface
             $errors['image_resolution'] = "Image width must be at least 600px (is {$width}px).";
         }
 
-        if ($height > 0) {
+        if ($height <= 0) {
+            $errors['image_dimensions'] = "Image height is invalid or zero.";
+        } else {
             $isAtLeast4x3 = ($width * 3) >= ($height * 4);
             $isAtMost16x9 = ($width * 9) <= ($height * 16);
             if (!$isAtLeast4x3 || !$isAtMost16x9) {
                 $ratio = round($width / $height, 2);
-                $errors['image_aspect_ratio'] = "Aspect ratio must be between 4:3 and 16:9 (yours is ~{$ratio}:1).";
+                $errors['image_aspect_ratio'] =
+                    "Aspect ratio must be between 4:3 (approx 1.33) and 16:9 (approx 1.78). Yours is ~{$ratio}:1.";
             }
-        } else {
-            $errors['image_dimensions'] = "Image height is invalid (0px).";
         }
 
         if (!empty($errors)) {
-            throw new ValidationException("Image validation failed.", $errors);
+            throw new ValidationException("Image content validation failed.", $errors);
         }
+    }
 
-        // File is valid, proceed to move
+    /**
+     * Ensures the physical upload directory exists and is writable.
+     *
+     * @throws FileUploadException
+     */
+    private function ensureUploadDirectoryExistsAndWritable(): void
+    {
         if (!is_dir($this->physicalImageUploadPath)) {
-            if (!@mkdir($this->physicalImageUploadPath, 0775, true)) {
-                throw new FileUploadException("Failed to create image upload directory: "
-                    . $this->physicalImageUploadPath);
+            if (!mkdir($this->physicalImageUploadPath, 0775, true)) {
+                throw new FileUploadException("Failed to create image upload directory: " .
+                    $this->physicalImageUploadPath . ". Check parent directory permissions.");
             }
         }
         if (!is_writable($this->physicalImageUploadPath)) {
-            throw new FileUploadException("Image upload directory is not writable: " . $this->physicalImageUploadPath);
+            throw new FileUploadException(
+                "Image upload directory is not writable: " . $this->physicalImageUploadPath);
         }
+    }
 
-        $originalFilename = $fileInfo['name'];
+    /**
+     * Generates a safe and unique filename for the uploaded image.
+     */
+    private function generateUniqueFilename(string $originalFilename): string
+    {
         $extension = strtolower(pathinfo($originalFilename, PATHINFO_EXTENSION));
-        $safeFilenamePart = preg_replace(
-            '/[^a-zA-Z0-9_-]/', '_', pathinfo($originalFilename, PATHINFO_FILENAME));
-        $uniqueFilename = $safeFilenamePart . '_' . uniqid() . '.' . $extension;
-        $destinationPath = $this->physicalImageUploadPath . '/' . $uniqueFilename;
+        $safeFilenamePart = preg_replace('/[^a-zA-Z0-9_-]/',
+            '_', pathinfo($originalFilename, PATHINFO_FILENAME));
 
+        return $safeFilenamePart . '_' . uniqid() . '.' . $extension;
+    }
+
+    /**
+     * Moves the uploaded temporary file to its permanent destination.
+     *
+     * @throws FileUploadException
+     */
+    private function moveUploadedImage(string $tempFilePath, string $destinationPath): void
+    {
         if (!move_uploaded_file($tempFilePath, $destinationPath)) {
-            throw new FileUploadException("Failed to move uploaded image to destination.");
+            $errorMessage = "Failed to move uploaded image to destination.";
+            error_log("move_uploaded_file failed: from {$tempFilePath} to {$destinationPath}. Error: ");
+            throw new FileUploadException($errorMessage);
         }
-
-        return $this->imageUrlBasePath . '/' . $uniqueFilename;
     }
 }

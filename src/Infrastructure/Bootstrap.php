@@ -19,6 +19,7 @@ use DemoShop\Data\Encryption\Encryptor;
 use DemoShop\Data\Repository\AdminAuthTokenRepository;
 use DemoShop\Data\Repository\AdminRepository;
 use DemoShop\Data\Repository\CategoryRepository;
+use DemoShop\Infrastructure\Config\PathConfig;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
 use DemoShop\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
@@ -49,6 +50,8 @@ class Bootstrap
             self::initEncryption();
             self::initEloquent();
 
+            self::registerConfig();
+
             self::registerRepositories();
             self::registerServices();
 
@@ -60,9 +63,11 @@ class Bootstrap
 
             ServiceRegistry::set(RouteDispatcher::class, new RouteDispatcher());
         } catch (\Throwable $e) {
-            error_log("CRITICAL BOOTSTRAP FAILURE in init(): " . $e->getMessage() . "\n" . $e->getTraceAsString());
+            error_log("CRITICAL BOOTSTRAP FAILURE in init(): " .
+                $e->getMessage() . "\n" . $e->getTraceAsString());
             if (!headers_sent()) {
-                HtmlResponse::createInternalServerError("A critical error occurred during application startup.")->view();
+                HtmlResponse::createInternalServerError(
+                    "A critical error occurred during application startup.")->view();
             }
 
             exit;
@@ -103,13 +108,11 @@ class Bootstrap
             $imageUrlBasePath = $_ENV['PRODUCT_IMAGE_URL_BASE'] ?? null;
 
             if (!$physicalImageUploadPath || !$imageUrlBasePath) {
-                throw new RuntimeException("Product image path configurations (PRODUCT_IMAGE_PHYSICAL_PATH or PRODUCT_IMAGE_URL_BASE) are not set in the environment.");
+                throw new RuntimeException("Product image path configurations " .
+                    "(PRODUCT_IMAGE_PHYSICAL_PATH or PRODUCT_IMAGE_URL_BASE) are not set in the environment.");
             }
 
-            ServiceRegistry::set(
-                ProductServiceInterface::class,
-                new ProductService($physicalImageUploadPath, $imageUrlBasePath)
-            );
+            ServiceRegistry::set(ProductServiceInterface::class, new ProductService());
         } catch (\RuntimeException $e) {
             error_log("Failed to register Service in Bootstrap: " . $e->getMessage());
             throw $e;
@@ -127,10 +130,12 @@ class Bootstrap
             RouteConfig::registerRoutes();
         } catch (\InvalidArgumentException $e) {
             error_log("Error adding route via RouteConfig - Invalid argument: " . $e->getMessage());
-            throw new \RuntimeException("Failed to define application routes due to invalid configuration.", 0, $e);
+            throw new \RuntimeException("Failed to define application routes due to invalid configuration.",
+                0, $e);
         } catch (\Exception $e) {
             error_log("Unexpected error during route registration via RouteConfig: " . $e->getMessage());
-            throw new \RuntimeException("An unexpected error occurred while defining application routes.", 0, $e);
+            throw new \RuntimeException("An unexpected error occurred while defining application routes.",
+                0, $e);
         }
     }
 
@@ -187,5 +192,21 @@ class Bootstrap
             error_log("Failed to register an individual Middleware service in Bootstrap: " . $e->getMessage());
             throw new RuntimeException("Critical middleware service registration failed.", 0, $e);
         }
+    }
+
+    /**
+     * Registers configuration classes
+     *
+     * @return void
+     */
+    private static function registerConfig(): void
+    {
+        $physicalPath = $_ENV['PRODUCT_IMAGE_PHYSICAL_PATH'] ?? null;
+        $urlBase = $_ENV['PRODUCT_IMAGE_URL_BASE'] ?? null;
+        if (!$physicalPath || !$urlBase) {
+            throw new RuntimeException("Image path configurations are not set in .env");
+        }
+
+        ServiceRegistry::set(PathConfig::class, new PathConfig($physicalPath, $urlBase));
     }
 }

@@ -150,6 +150,8 @@ class CategoryController
              Resource not found for ID {$idToDeleteParam}. Error: " . $e->getMessage());
 
             return JsonResponse::createNotFound($e->getMessage());
+        } catch (InvalidCategoryDataException $e) {
+            return JsonResponse::createBadRequest($e->getMessage());
         } catch (RuntimeException $e) {
             return JsonResponse::createInternalServerError("Failed to delete the category due to a server issue.");
         }
