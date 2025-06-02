@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\DI;
+namespace DemoShop\Infrastructure\DI;
 
 use Exception;
 

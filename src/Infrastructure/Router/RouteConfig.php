@@ -1,14 +1,15 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Router;
+namespace DemoShop\Infrastructure\Router;
 
-use DemoShop\src\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
-use DemoShop\src\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
-use DemoShop\src\Infrastructure\Middleware\Authorize\ValidateMiddleware;
-use DemoShop\src\Presentation\Controller\AdminController;
-use DemoShop\src\Presentation\Controller\AuthController;
-use DemoShop\src\Presentation\Controller\CategoryController;
-use DemoShop\src\Presentation\Controller\ViewController;
+use DemoShop\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
+use DemoShop\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
+use DemoShop\Infrastructure\Middleware\Authorize\ValidateMiddleware;
+use DemoShop\Presentation\Controller\AdminController;
+use DemoShop\Presentation\Controller\AuthController;
+use DemoShop\Presentation\Controller\CategoryController;
+use DemoShop\Presentation\Controller\ProductController;
+use DemoShop\Presentation\Controller\ViewController;
 
 class RouteConfig
 {
@@ -76,6 +77,13 @@ class RouteConfig
             '/api/delete/{id}',
             [CategoryController::class, 'deleteCategory'],
             [AuthorizeMiddleware::class]
+        );
+
+        // Products
+        RouteRegistry::add(
+            'POST',
+            '/api/product/create',
+            [ProductController::class, 'createProduct']
         );
     }
 }

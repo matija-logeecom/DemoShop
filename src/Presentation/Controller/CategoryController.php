@@ -1,15 +1,15 @@
 <?php
 
-namespace DemoShop\src\Presentation\Controller;
+namespace DemoShop\Presentation\Controller;
 
-use DemoShop\src\Business\Exception\InvalidCategoryDataException;
-use DemoShop\src\Business\Exception\ResourceNotFoundException;
-use DemoShop\src\Business\Interfaces\Service\CategoryServiceInterface;
-use DemoShop\src\Business\Model\Category;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Request\Request;
-use DemoShop\src\Infrastructure\Response\JsonResponse;
-use DemoShop\src\Infrastructure\Response\Response;
+use DemoShop\Business\Exception\InvalidCategoryDataException;
+use DemoShop\Business\Exception\ResourceNotFoundException;
+use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
+use DemoShop\Business\Model\Category;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\JsonResponse;
+use DemoShop\Infrastructure\Response\Response;
 use Exception;
 use RuntimeException;
 

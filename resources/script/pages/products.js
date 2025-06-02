@@ -1,11 +1,15 @@
 import { CategoryService } from '../services/categoryService.js';
+import { ProductService } from '../services/productService.js'; // Import ProductService
 
 export function showProducts() {
     const wrapper = document.createElement('div');
     wrapper.id = 'products-page-container';
     wrapper.innerHTML = '<p>Loading products...</p>';
 
-    fetch('/resources/pages/products.html')
+    // Instantiate ProductService once for the page
+    const productService = new ProductService();
+
+    fetch('/resources/pages/products.html') // Ensure this path is correct
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -19,7 +23,8 @@ export function showProducts() {
             while (tempDiv.firstChild) {
                 wrapper.appendChild(tempDiv.firstChild);
             }
-            setupEventListeners(wrapper);
+            // Pass productService instance to setupEventListeners
+            setupEventListeners(wrapper, productService);
             const categoryService = new CategoryService();
             populateCategoryDropdown(wrapper, categoryService);
         })
@@ -55,7 +60,7 @@ async function populateCategoryDropdown(container, categoryService) {
     }
 }
 
-function setupEventListeners(container) {
+function setupEventListeners(container, productService) { // productService is now passed in
     const addProductView = container.querySelector('#add-product-view');
     const productListView = container.querySelector('#product-list-view');
     const btnAddNewProduct = container.querySelector('#btn-add-new-product');
@@ -63,23 +68,28 @@ function setupEventListeners(container) {
     const addProductForm = container.querySelector('#form-add-product');
     const productImageInput = container.querySelector('#product-image');
     const productImagePreview = container.querySelector('#product-image-preview');
-    const productImageError = container.querySelector('#product-image-error'); // Get the error div
+    const productImageError = container.querySelector('#product-image-error');
+    const btnSaveProduct = container.querySelector('#btn-save-product');
+    const categorySelect = container.querySelector('#product-category');
 
-    // Helper to clear image input and messages
-    const resetImageFields = () => {
-        if (productImageInput) productImageInput.value = null; // Clear the file input
+
+    const resetFormAndImage = () => {
+        if (addProductForm) addProductForm.reset();
+        if (productImageInput) productImageInput.value = null;
         if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
         if (productImageError) productImageError.textContent = '';
+        if (categorySelect) categorySelect.selectedIndex = 0;
     };
 
     if (btnAddNewProduct && addProductView && productListView) {
         btnAddNewProduct.addEventListener('click', () => {
             productListView.classList.add('view-hidden');
             addProductView.classList.remove('view-hidden');
-            resetImageFields(); // Reset image fields when opening form
-            if (addProductForm) addProductForm.reset(); // Reset other form fields
-            const categorySelect = container.querySelector('#product-category');
-            if (categorySelect) categorySelect.selectedIndex = 0; // Reset category dropdown
+            resetFormAndImage();
+            if (btnSaveProduct) {
+                btnSaveProduct.disabled = false;
+                btnSaveProduct.textContent = 'Save Product';
+            }
         });
     }
 
@@ -87,95 +97,145 @@ function setupEventListeners(container) {
         btnCancelAddProduct.addEventListener('click', () => {
             addProductView.classList.add('view-hidden');
             productListView.classList.remove('view-hidden');
-            if (addProductForm) addProductForm.reset();
-            resetImageFields();
-            const categorySelect = container.querySelector('#product-category');
-            if (categorySelect) categorySelect.selectedIndex = 0;
+            resetFormAndImage();
         });
     }
 
-    if (addProductForm) {
-        addProductForm.addEventListener('submit', event => {
+    if (addProductForm && productService) { // Check if productService is available
+        addProductForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            // Before submitting, you might want to re-validate the image if a file is selected
-            // or ensure that a valid image (if mandatory) has been chosen.
+
+            // Re-check image validation status before submission
             if (productImageInput.files.length > 0 && productImageError.textContent !== '') {
-                alert('Please select a valid image that meets the requirements.');
+                alert('Please correct the image errors before saving.');
                 return;
             }
-            console.log('Product form submitted. Implement save logic.');
+            // Basic client-side validation for required fields (HTML5 'required' helps, but JS check is good)
+            const sku = container.querySelector('#product-sku').value.trim();
+            const title = container.querySelector('#product-title').value.trim();
+            const price = container.querySelector('#product-price').value.trim();
+            const categoryId = categorySelect.value;
+
+            if (!sku || !title || !price || !categoryId) {
+                alert('Please fill in all required fields: SKU, Title, Category, and Price.');
+                return;
+            }
+
+
+            if (btnSaveProduct) {
+                btnSaveProduct.disabled = true;
+                btnSaveProduct.textContent = 'Saving...';
+            }
+
+            const formData = new FormData(addProductForm);
+            // Note: For unchecked checkboxes ('enabled', 'featured'), if the backend
+            // expects a '0' value, you might need to manually check and append:
+            // if (!container.querySelector('#product-enabled').checked) formData.set('enabled', '0');
+            // if (!container.querySelector('#product-featured').checked) formData.set('featured', '0');
+            // However, the current PHP controller handles missing fields for checkboxes as 'false'.
+            // If 'enabled' or 'featured' are checked, FormData(addProductForm) includes them with value="1".
+
+            try {
+                const response = await productService.createProduct(formData); // productService is defined in the outer scope
+                alert(response.message || 'Product created successfully!');
+
+                resetFormAndImage();
+                addProductView.classList.add('view-hidden');
+                productListView.classList.remove('view-hidden');
+
+                // TODO: Add logic here to refresh the product list table in productListView
+                // For example: await fetchAndDisplayProducts();
+
+            } catch (error) {
+                console.error('Failed to create product:', error);
+                let errorMessage = 'Failed to create product. Please try again.';
+                if (error.responseBody && error.responseBody.message) {
+                    errorMessage = error.responseBody.message;
+                    if (error.responseBody.errors) { // If backend sends specific field errors
+                        let fieldErrors = [];
+                        for (const key in error.responseBody.errors) {
+                            fieldErrors.push(`${key}: ${error.responseBody.errors[key]}`);
+                        }
+                        errorMessage += '\nDetails:\n' + fieldErrors.join('\n');
+                    }
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                alert(errorMessage);
+            } finally {
+                if (btnSaveProduct) {
+                    btnSaveProduct.disabled = false;
+                    btnSaveProduct.textContent = 'Save Product';
+                }
+            }
         });
     }
 
+    // Image validation logic (from previous step, assumed to be complete)
     if (productImageInput && productImagePreview && productImageError) {
         productImageInput.addEventListener('change', function() {
             const file = this.files[0];
-            productImageError.textContent = ''; // Clear previous errors
+            productImageError.textContent = '';
 
             if (file) {
                 if (!file.type.startsWith('image/')) {
                     productImageError.textContent = 'Invalid file type. Please select an image.';
-                    resetImageFields(); // Ensure resetImageFields clears productImageInput.value
+                    if (productImageInput) productImageInput.value = null;
+                    if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
                     return;
                 }
-
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = new Image();
                     img.onload = function() {
                         const width = img.naturalWidth;
                         const height = img.naturalHeight;
-
-                        // Ensure height is not zero to avoid division by zero
                         if (height === 0) {
                             productImageError.textContent = 'Image height cannot be zero.';
-                            resetImageFields();
+                            if (productImageInput) productImageInput.value = null;
+                            if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
                             return;
                         }
                         const ratio = width / height;
-
                         const minWidth = 600;
-                        // Define ratios with a small epsilon for tolerance
-                        const minRatio = (4 / 3) - 0.001; // Approx 1.3333 - 0.001 = 1.3323
-                        const maxRatio = (16 / 9) + 0.001; // Approx 1.7777 + 0.001 = 1.7787
-
+                        const minRatio = (4 / 3) - 0.001;
+                        const maxRatio = (16 / 9) + 0.001;
                         let isValid = true;
                         let errors = [];
-
                         if (width < minWidth) {
                             isValid = false;
                             errors.push(`Image width must be at least ${minWidth}px (is ${width}px).`);
                         }
-
-                        // Check if the calculated ratio is outside the slightly adjusted tolerant range
                         if (ratio < minRatio || ratio > maxRatio) {
                             isValid = false;
-                            // Provide more precise feedback for debugging the ratio
                             errors.push(`Aspect ratio must be between 4:3 (1.33) and 16:9 (1.78). Yours is ~${ratio.toFixed(2)}:1.`);
                         }
-
                         if (isValid) {
                             productImagePreview.innerHTML = `<img src="${e.target.result}" alt="Image preview">`;
                             productImageError.textContent = '';
                         } else {
                             productImageError.innerHTML = errors.join('<br>');
                             productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
-                            if (productImageInput) productImageInput.value = null; // Reset the file input
+                            if (productImageInput) productImageInput.value = null;
                         }
                     };
                     img.onerror = function() {
                         productImageError.textContent = 'Could not load image. Please select a valid image file.';
-                        resetImageFields();
+                        if (productImageInput) productImageInput.value = null;
+                        if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
                     };
                     img.src = e.target.result;
                 };
                 reader.onerror = function() {
                     productImageError.textContent = 'Error reading file.';
-                    resetImageFields();
+                    if (productImageInput) productImageInput.value = null;
+                    if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
                 };
                 reader.readAsDataURL(file);
             } else {
-                resetImageFields();
+                if (productImageInput) productImageInput.value = null;
+                if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
+                if (productImageError) productImageError.textContent = '';
             }
         });
     }

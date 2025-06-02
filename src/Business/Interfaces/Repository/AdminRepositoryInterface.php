@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Business\Interfaces\Repository;
+namespace DemoShop\Business\Interfaces\Repository;
 
-use DemoShop\src\Business\Model\Admin;
+use DemoShop\Business\Model\Admin;
 
 interface AdminRepositoryInterface
 {

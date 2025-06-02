@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Data\Model;
+namespace DemoShop\Data\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

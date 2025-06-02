@@ -1,13 +1,13 @@
 <?php
 
-namespace DemoShop\src\Presentation\Controller;
+namespace DemoShop\Presentation\Controller;
 
-use DemoShop\src\Business\Interfaces\Service\DashboardServiceInterface;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Request\Request;
-use DemoShop\src\Infrastructure\Response\HtmlResponse;
-use DemoShop\src\Infrastructure\Response\JsonResponse;
-use DemoShop\src\Infrastructure\Response\Response;
+use DemoShop\Business\Interfaces\Service\DashboardServiceInterface;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\JsonResponse;
+use DemoShop\Infrastructure\Response\Response;
 use Exception;
 use RuntimeException;
 

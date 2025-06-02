@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Business\Model;
+namespace DemoShop\Business\Model;
 
 class Category
 {

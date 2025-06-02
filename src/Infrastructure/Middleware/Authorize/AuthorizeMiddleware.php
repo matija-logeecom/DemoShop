@@ -1,12 +1,12 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Middleware\Authorize;
+namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\src\Business\Interfaces\Service\AuthServiceInterface;
-use DemoShop\src\Infrastructure\Cookie\CookieManager;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Middleware\Exception\AuthorizeException;
-use DemoShop\src\Infrastructure\Request\Request;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Infrastructure\Cookie\CookieManager;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Middleware\Exception\AuthorizeException;
+use DemoShop\Infrastructure\Request\Request;
 
 /*
  * Middleware for admin authorization

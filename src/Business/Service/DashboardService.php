@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Business\Service;
+namespace DemoShop\Business\Service;
 
-use DemoShop\src\Business\Interfaces\Service\DashboardServiceInterface;
+use DemoShop\Business\Interfaces\Service\DashboardServiceInterface;
 
 class DashboardService implements DashboardServiceInterface
 {

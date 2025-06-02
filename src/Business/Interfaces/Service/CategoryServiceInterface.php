@@ -1,9 +1,9 @@
 <?php
 
-namespace DemoShop\src\Business\Interfaces\Service;
+namespace DemoShop\Business\Interfaces\Service;
 
-use DemoShop\src\Business\Exception\InvalidCategoryDataException;
-use DemoShop\src\Business\Model\Category;
+use DemoShop\Business\Exception\InvalidCategoryDataException;
+use DemoShop\Business\Model\Category;
 use RuntimeException;
 
 interface CategoryServiceInterface

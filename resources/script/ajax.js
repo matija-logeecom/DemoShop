@@ -1,16 +1,24 @@
 export class AjaxService {
-    async _request(url, method = 'GET', data = null, headers = {}) {
+    async _request(url, method = 'GET', data = null, headers = {}, isFormData = false) { // Added isFormData flag
         const options = {
             method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                ...headers,
-            },
+            headers: { ...headers }, // Initialize headers
         };
 
-        if (data && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-            options.body = JSON.stringify(data);
+        if (!isFormData) {
+            options.headers['Content-Type'] = 'application/json'; // Set JSON content type if not FormData
         }
+        // For FormData, the browser sets Content-Type automatically with the boundary.
+        // So, we don't set Content-Type if isFormData is true.
+
+        if (data) {
+            if (isFormData) {
+                options.body = data; // Assign FormData directly
+            } else if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+                options.body = JSON.stringify(data);
+            }
+        }
+
 
         try {
             const response = await fetch(url, options);
@@ -26,7 +34,14 @@ export class AjaxService {
                     errorPayload.message = serverErrorJson.error || serverErrorJson.message || errorPayload.message;
                     errorPayload.responseBody = serverErrorJson;
                 } catch (e) {
-                    console.warn(`Could not parse JSON error response from ${url}`, e);
+                    // If error response is not JSON, text() might be better.
+                    try {
+                        const serverErrorText = await response.text();
+                        errorPayload.message = serverErrorText || errorPayload.message;
+                        errorPayload.responseBody = { raw: serverErrorText };
+                    } catch (textErr) {
+                        console.warn(`Could not parse error response from ${url} as JSON or text`, textErr);
+                    }
                 }
                 console.error(`Error ${method}ing data to ${url}:`, errorPayload.message, 'Full error payload:', errorPayload);
 
@@ -36,7 +51,7 @@ export class AjaxService {
                 throw error;
             }
 
-            if (response.status === 204) {
+            if (response.status === 204 || response.headers.get("content-length") === "0") { // Handle 204 or empty body
                 return null;
             }
             return await response.json();
@@ -58,6 +73,12 @@ export class AjaxService {
     async post(url, data, headers = {}) {
         return this._request(url, 'POST', data, headers);
     }
+
+    // New method specifically for FormData
+    async postWithFormData(url, formData, headers = {}) {
+        return this._request(url, 'POST', formData, headers, true); // Pass true for isFormData
+    }
+
 
     async put(url, data, headers = {}) {
         return this._request(url, 'PUT', data, headers);

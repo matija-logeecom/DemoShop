@@ -1,15 +1,15 @@
 <?php
 
-namespace DemoShop\src\Business\Service;
+namespace DemoShop\Business\Service;
 
-use DemoShop\src\Business\Exception\InvalidCategoryDataException;
-use DemoShop\src\Business\Exception\MissingCategoryFieldException;
-use DemoShop\src\Business\Exception\NoChangesMadeException;
-use DemoShop\src\Business\Exception\ResourceNotFoundException;
-use DemoShop\src\Business\Interfaces\Repository\CategoryRepositoryInterface;
-use DemoShop\src\Business\Interfaces\Service\CategoryServiceInterface;
-use DemoShop\src\Business\Model\Category;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Business\Exception\InvalidCategoryDataException;
+use DemoShop\Business\Exception\MissingCategoryFieldException;
+use DemoShop\Business\Exception\NoChangesMadeException;
+use DemoShop\Business\Exception\ResourceNotFoundException;
+use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
+use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
+use DemoShop\Business\Model\Category;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use Exception;
 use RuntimeException;
 

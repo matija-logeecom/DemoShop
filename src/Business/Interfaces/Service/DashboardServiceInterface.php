@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Business\Interfaces\Service;
+namespace DemoShop\Business\Interfaces\Service;
 
 interface DashboardServiceInterface
 {

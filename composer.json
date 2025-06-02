@@ -2,7 +2,7 @@
   "name": "matija/demo-shop",
   "autoload": {
     "psr-4": {
-      "DemoShop\\": "./"
+      "DemoShop\\": "src/"
     }
   },
   "authors": [

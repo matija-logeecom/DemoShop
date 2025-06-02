@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Cookie;
+namespace DemoShop\Infrastructure\Cookie;
 
 class CookieManager
 {

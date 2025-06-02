@@ -1,10 +1,10 @@
 <?php
 
-namespace DemoShop\src\Data\Repository;
+namespace DemoShop\Data\Repository;
 
 use Carbon\Carbon;
-use DemoShop\src\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
-use DemoShop\src\Data\Model\AdminAuthToken;
+use DemoShop\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
+use DemoShop\Data\Model\AdminAuthToken;
 use Exception;
 use Illuminate\Database\QueryException;
 use RuntimeException;

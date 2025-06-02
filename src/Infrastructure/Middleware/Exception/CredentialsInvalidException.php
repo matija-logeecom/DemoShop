@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Middleware\Exception;
+namespace DemoShop\Infrastructure\Middleware\Exception;
 
 class CredentialsInvalidException extends \Exception
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Session;
+namespace DemoShop\Infrastructure\Session;
 
 class SessionManager
 {

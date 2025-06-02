@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Business\Interfaces\Repository;
+namespace DemoShop\Business\Interfaces\Repository;
 
-use DemoShop\src\Business\Model\Category;
+use DemoShop\Business\Model\Category;
 use RuntimeException;
 
 interface CategoryRepositoryInterface

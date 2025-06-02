@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use DemoShop\Core;
+use DemoShop\Infrastructure\Core;
 
 const VIEWS_PATH = __DIR__ . '/resources/pages';
 

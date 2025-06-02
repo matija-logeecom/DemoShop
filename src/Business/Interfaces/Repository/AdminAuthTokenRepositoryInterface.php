@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Business\Interfaces\Repository;
+namespace DemoShop\Business\Interfaces\Repository;
 
-use DemoShop\src\Data\Model\AdminAuthToken;
+use DemoShop\Data\Model\AdminAuthToken;
 
 interface AdminAuthTokenRepositoryInterface
 {

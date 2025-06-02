@@ -1,14 +1,14 @@
 <?php
 
-namespace DemoShop\src\Business\Service;
+namespace DemoShop\Business\Service;
 
 use Carbon\Carbon;
-use DemoShop\src\Business\Interfaces\Encryption\EncryptorInterface;
-use DemoShop\src\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
-use DemoShop\src\Business\Interfaces\Repository\AdminRepositoryInterface;
-use DemoShop\src\Business\Interfaces\Service\AuthServiceInterface;
-use DemoShop\src\Business\Model\Admin;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Business\Interfaces\Encryption\EncryptorInterface;
+use DemoShop\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\AdminRepositoryInterface;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Business\Model\Admin;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\Encryption\EncryptException;
 use Exception;

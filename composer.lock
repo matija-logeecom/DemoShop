@@ -72,7 +72,7 @@
       "source": {
         "type": "git",
         "url": "https://github.com/CarbonPHP/carbon-doctrine-types.git",
-        "reference": "99f76ffa36cce3b70a4a6abce41dba15ca2e84cb"
+        "reference": "99f76sga36cce3b70a4a6abce41dba15ca2e84cb"
       },
       "dist": {
         "type": "zip",

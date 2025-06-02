@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Business\Exception;
+namespace DemoShop\Business\Exception;
 
 use Throwable;
 

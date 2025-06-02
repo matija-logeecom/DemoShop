@@ -1,12 +1,12 @@
 <?php
 
-namespace DemoShop\src\Data\Repository;
+namespace DemoShop\Data\Repository;
 
-use DemoShop\src\Business\Interfaces\Encryption\EncryptorInterface;
-use DemoShop\src\Business\Interfaces\Repository\AdminRepositoryInterface;
-use DemoShop\src\Business\Model\Admin;
-use DemoShop\src\Data\Model\Admin as AdminEntity;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Business\Interfaces\Encryption\EncryptorInterface;
+use DemoShop\Business\Interfaces\Repository\AdminRepositoryInterface;
+use DemoShop\Business\Model\Admin;
+use DemoShop\Data\Model\Admin as AdminEntity;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
 use Exception;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;

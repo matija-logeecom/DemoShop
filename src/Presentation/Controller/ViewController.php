@@ -1,10 +1,10 @@
 <?php
 
-namespace DemoShop\src\Presentation\Controller;
+namespace DemoShop\Presentation\Controller;
 
-use DemoShop\src\Infrastructure\Request\Request;
-use DemoShop\src\Infrastructure\Response\HtmlResponse;
-use DemoShop\src\Infrastructure\Response\Response;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\Response;
 
 class ViewController
 {

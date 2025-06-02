@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Router\DTO;
+namespace DemoShop\Infrastructure\Router\DTO;
 
 class Route
 {

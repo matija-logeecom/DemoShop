@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Data\Encryption;
+namespace DemoShop\Data\Encryption;
 
-use DemoShop\src\Business\Interfaces\Encryption\EncryptorInterface;
+use DemoShop\Business\Interfaces\Encryption\EncryptorInterface;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Contracts\Encryption\EncryptException;
 use Illuminate\Encryption\Encrypter;

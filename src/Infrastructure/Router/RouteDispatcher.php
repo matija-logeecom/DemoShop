@@ -1,15 +1,15 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Router;
+namespace DemoShop\Infrastructure\Router;
 
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Middleware\Exception\AlreadyLoggedInException;
-use DemoShop\src\Infrastructure\Middleware\Exception\AuthorizeException;
-use DemoShop\src\Infrastructure\Middleware\Exception\CredentialsInvalidException;
-use DemoShop\src\Infrastructure\Request\Request;
-use DemoShop\src\Infrastructure\Response\HtmlResponse;
-use DemoShop\src\Infrastructure\Response\RedirectionResponse;
-use DemoShop\src\Infrastructure\Router\DTO\Route;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Middleware\Exception\AlreadyLoggedInException;
+use DemoShop\Infrastructure\Middleware\Exception\AuthorizeException;
+use DemoShop\Infrastructure\Middleware\Exception\CredentialsInvalidException;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\RedirectionResponse;
+use DemoShop\Infrastructure\Router\DTO\Route;
 use Exception;
 use RuntimeException;
 use Throwable;

@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Business\Interfaces\Service;
+namespace DemoShop\Business\Interfaces\Service;
 
-use DemoShop\src\Business\Model\Admin;
+use DemoShop\Business\Model\Admin;
 
 interface AuthServiceInterface
 {

@@ -1,29 +1,33 @@
 <?php
 
-namespace DemoShop\src\Infrastructure;
+namespace DemoShop\Infrastructure;
 
-use DemoShop\src\Business\Interfaces\Encryption\EncryptorInterface;
-use DemoShop\src\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
-use DemoShop\src\Business\Interfaces\Repository\AdminRepositoryInterface;
-use DemoShop\src\Business\Interfaces\Repository\CategoryRepositoryInterface;
-use DemoShop\src\Business\Interfaces\Service\AuthServiceInterface;
-use DemoShop\src\Business\Interfaces\Service\CategoryServiceInterface;
-use DemoShop\src\Business\Interfaces\Service\DashboardServiceInterface;
-use DemoShop\src\Business\Service\AuthService;
-use DemoShop\src\Business\Service\CategoryService;
-use DemoShop\src\Business\Service\DashboardService;
-use DemoShop\src\Data\Encryption\Encryptor;
-use DemoShop\src\Data\Repository\AdminAuthTokenRepository;
-use DemoShop\src\Data\Repository\AdminRepository;
-use DemoShop\src\Data\Repository\CategoryRepository;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
-use DemoShop\src\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
-use DemoShop\src\Infrastructure\Middleware\Authorize\ValidateMiddleware;
-use DemoShop\src\Infrastructure\Request\Request;
-use DemoShop\src\Infrastructure\Response\HtmlResponse;
-use DemoShop\src\Infrastructure\Router\RouteConfig;
-use DemoShop\src\Infrastructure\Router\RouteDispatcher;
+use DemoShop\Business\Interfaces\Encryption\EncryptorInterface;
+use DemoShop\Business\Interfaces\Repository\AdminAuthTokenRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\AdminRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
+use DemoShop\Business\Interfaces\Repository\ProductRepositoryInterface;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
+use DemoShop\Business\Interfaces\Service\DashboardServiceInterface;
+use DemoShop\Business\Interfaces\Service\ProductServiceInterface;
+use DemoShop\Business\Service\AuthService;
+use DemoShop\Business\Service\CategoryService;
+use DemoShop\Business\Service\DashboardService;
+use DemoShop\Business\Service\ProductService;
+use DemoShop\Data\Encryption\Encryptor;
+use DemoShop\Data\Repository\AdminAuthTokenRepository;
+use DemoShop\Data\Repository\AdminRepository;
+use DemoShop\Data\Repository\CategoryRepository;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Middleware\Authorize\AlreadyLoggedInMiddleware;
+use DemoShop\Infrastructure\Middleware\Authorize\AuthorizeMiddleware;
+use DemoShop\Infrastructure\Middleware\Authorize\ValidateMiddleware;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Router\RouteConfig;
+use DemoShop\Infrastructure\Router\RouteDispatcher;
+use DemoShop\Data\Repository\ProductRepository;
 use Exception;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use RuntimeException;
@@ -76,6 +80,7 @@ class Bootstrap
             ServiceRegistry::set(AdminRepositoryInterface::class, new AdminRepository());
             ServiceRegistry::set(CategoryRepositoryInterface::class, new CategoryRepository());
             ServiceRegistry::set(AdminAuthTokenRepositoryInterface::class, new AdminAuthTokenRepository());
+            ServiceRegistry::set(ProductRepositoryInterface::class, new ProductRepository());
         } catch (\RuntimeException $e) {
             error_log("Failed to register Repository in Bootstrap: " . $e->getMessage());
             throw $e;
@@ -93,6 +98,18 @@ class Bootstrap
             ServiceRegistry::set(AuthServiceInterface::class, new AuthService());
             ServiceRegistry::set(CategoryServiceInterface::class, new CategoryService());
             ServiceRegistry::set(DashboardServiceInterface::class, new DashboardService());
+
+            $physicalImageUploadPath = $_ENV['PRODUCT_IMAGE_PHYSICAL_PATH'] ?? null;
+            $imageUrlBasePath = $_ENV['PRODUCT_IMAGE_URL_BASE'] ?? null;
+
+            if (!$physicalImageUploadPath || !$imageUrlBasePath) {
+                throw new RuntimeException("Product image path configurations (PRODUCT_IMAGE_PHYSICAL_PATH or PRODUCT_IMAGE_URL_BASE) are not set in the environment.");
+            }
+
+            ServiceRegistry::set(
+                ProductServiceInterface::class,
+                new ProductService($physicalImageUploadPath, $imageUrlBasePath)
+            );
         } catch (\RuntimeException $e) {
             error_log("Failed to register Service in Bootstrap: " . $e->getMessage());
             throw $e;

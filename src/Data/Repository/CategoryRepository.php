@@ -1,11 +1,11 @@
 <?php
 
-namespace DemoShop\src\Data\Repository;
+namespace DemoShop\Data\Repository;
 
-use DemoShop\src\Business\Exception\ResourceNotFoundException;
-use DemoShop\src\Business\Interfaces\Repository\CategoryRepositoryInterface;
-use DemoShop\src\Business\Model\Category;
-use DemoShop\src\Data\Model\Category as CategoryEntity;
+use DemoShop\Business\Exception\ResourceNotFoundException;
+use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
+use DemoShop\Business\Model\Category;
+use DemoShop\Data\Model\Category as CategoryEntity;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;

@@ -1,11 +1,11 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Middleware\Authorize;
+namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\src\Business\Interfaces\Service\AuthServiceInterface;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Middleware\Exception\CredentialsInvalidException;
-use DemoShop\src\Infrastructure\Request\Request;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Middleware\Exception\CredentialsInvalidException;
+use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
 /*

@@ -1,8 +1,8 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Router;
+namespace DemoShop\Infrastructure\Router;
 
-use DemoShop\src\Infrastructure\Router\DTO\Route;
+use DemoShop\Infrastructure\Router\DTO\Route;
 use InvalidArgumentException;
 
 class RouteRegistry

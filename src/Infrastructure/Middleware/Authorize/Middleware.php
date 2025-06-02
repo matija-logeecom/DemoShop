@@ -1,9 +1,9 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Middleware\Authorize;
+namespace DemoShop\Infrastructure\Middleware\Authorize;
 
-use DemoShop\src\Business\Interfaces\Service\AuthServiceInterface;
-use DemoShop\src\Infrastructure\Request\Request;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Infrastructure\Request\Request;
 use Exception;
 
 /*

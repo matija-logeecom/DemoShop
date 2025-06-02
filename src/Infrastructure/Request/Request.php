@@ -1,6 +1,6 @@
 <?php
 
-namespace DemoShop\src\Infrastructure\Request;
+namespace DemoShop\Infrastructure\Request;
 
 /*
  * Class containing info required for sending a request

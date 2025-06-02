@@ -1,15 +1,15 @@
 <?php
 
-namespace DemoShop\src\Presentation\Controller;
+namespace DemoShop\Presentation\Controller;
 
-use DemoShop\src\Business\Interfaces\Service\AuthServiceInterface;
-use DemoShop\src\Business\Model\Admin;
-use DemoShop\src\Infrastructure\Cookie\CookieManager;
-use DemoShop\src\Infrastructure\DI\ServiceRegistry;
-use DemoShop\src\Infrastructure\Request\Request;
-use DemoShop\src\Infrastructure\Response\HtmlResponse;
-use DemoShop\src\Infrastructure\Response\RedirectionResponse;
-use DemoShop\src\Infrastructure\Response\Response;
+use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
+use DemoShop\Business\Model\Admin;
+use DemoShop\Infrastructure\Cookie\CookieManager;
+use DemoShop\Infrastructure\DI\ServiceRegistry;
+use DemoShop\Infrastructure\Request\Request;
+use DemoShop\Infrastructure\Response\HtmlResponse;
+use DemoShop\Infrastructure\Response\RedirectionResponse;
+use DemoShop\Infrastructure\Response\Response;
 
 class AuthController
 {
