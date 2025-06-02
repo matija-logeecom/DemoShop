@@ -23,9 +23,16 @@ interface ProductServiceInterface
 
     public function getProducts(int $page = 1, int $perPage = 10): LengthAwarePaginator;
 
-    // Future methods could include:
-    // public function getProductById(int $id): ?Product;
-    // public function getProducts(array $filters = [], int $page = 1, int $perPage = 15): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
-    // public function updateProduct(int $productId, array $inputData): Product;
-    // public function deleteProduct(int $productId): bool;
+    public function deleteProducts(array $productIds): int;
+
+    /**
+     * Updates the 'is_enabled' status for multiple products.
+     *
+     * @param array $productIds Array of product IDs to update.
+     * @param bool $newStatus The new status (true for enabled, false for disabled).
+     * @return int Number of products successfully updated.
+     * @throws ValidationException If input is invalid.
+     * @throws Exception For other errors.
+     */
+    public function updateProductsEnabledStatus(array $productIds, bool $newStatus): int;
 }

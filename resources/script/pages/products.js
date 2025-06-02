@@ -1,22 +1,22 @@
 import { CategoryService } from '../services/categoryService.js';
 import { ProductService } from '../services/productService.js';
 
-// Store current page and last page info for pagination controls
+// Module-level variables to store state and instances
 let currentPage = 1;
 let lastPage = 1;
-let currentContainer = null; // To store the main wrapper for use in pagination clicks
-let currentProductServiceInstance = null; // To store the productService instance
+let currentContainer = null; // Stores the main wrapper for the products page
+let currentProductServiceInstance = null; // Stores the instance of ProductService
 
 export function showProducts() {
     const wrapper = document.createElement('div');
     wrapper.id = 'products-page-container';
-    wrapper.innerHTML = '<p>Loading products...</p>';
+    wrapper.innerHTML = '<p>Loading products...</p>'; // Initial loading message
 
-    // Store wrapper and service for access by pagination handlers
+    // Assign to module-level variables for broader access within this module
     currentContainer = wrapper;
     currentProductServiceInstance = new ProductService();
 
-    fetch('/resources/pages/products.html') // Ensure this path is correct for your setup
+    fetch('/resources/pages/products.html') // Path to your HTML structure
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -31,14 +31,13 @@ export function showProducts() {
                 wrapper.appendChild(tempDiv.firstChild);
             }
 
-            // Pass currentProductServiceInstance to setupEventListeners
             setupEventListeners(wrapper, currentProductServiceInstance);
 
             const categoryService = new CategoryService();
             populateCategoryDropdown(wrapper, categoryService);
 
             // Initial fetch and display of products for page 1
-            fetchAndDisplayProducts(1); // Uses global currentContainer and currentProductServiceInstance
+            fetchAndDisplayProducts(1);
         })
         .catch(error => {
             console.error('Error fetching products.html:', error);
@@ -56,23 +55,25 @@ async function fetchAndDisplayProducts(page = 1) {
 
     const productTableBody = currentContainer.querySelector('#products-table-body');
     if (!productTableBody) {
-        console.error('Product table body not found');
+        console.error('Product table body (#products-table-body) not found.');
         return;
     }
-    productTableBody.innerHTML = '<tr><td colspan="9">Loading products...</td></tr>';
+    productTableBody.innerHTML = '<tr><td colspan="9">Loading products...</td></tr>'; // colspan matches number of columns
 
     try {
         const paginatedResult = await currentProductServiceInstance.getProducts(page);
 
         renderProductTable(paginatedResult.data || [], productTableBody);
-        updatePaginationUI(paginatedResult); // Uses global currentContainer and currentProductServiceInstance
+        updatePaginationUI(paginatedResult);
 
     } catch (error) {
         console.error('Failed to fetch products:', error);
         productTableBody.innerHTML = '<tr><td colspan="9">Error loading products. Please try again.</td></tr>';
         const pageInfoEl = currentContainer.querySelector('#page-info');
         if (pageInfoEl) pageInfoEl.textContent = 'Page N/A';
-        currentContainer.querySelectorAll('.pagination-controls button').forEach(btn => btn.disabled = true);
+        if (currentContainer) {
+            currentContainer.querySelectorAll('.pagination-controls button').forEach(btn => btn.disabled = true);
+        }
     }
 }
 
@@ -80,45 +81,53 @@ function renderProductTable(products, tableBodyElement) {
     tableBodyElement.innerHTML = '';
 
     if (!products || products.length === 0) {
-        tableBodyElement.innerHTML = '<tr><td colspan="9">No products found.</td></tr>';
+        tableBodyElement.innerHTML = '<tr><td colspan="9">No products found.</td></tr>'; // colspan matches
         return;
     }
 
     products.forEach(product => {
         const row = tableBodyElement.insertRow();
+        // Column 1: Individual Checkbox
         row.insertCell().innerHTML = `<input type="checkbox" class="product-select-row" data-product-id="${product.id}">`;
+        // Column 2: Title
         row.insertCell().textContent = product.title || 'N/A';
+        // Column 3: SKU
         row.insertCell().textContent = product.sku || 'N/A';
+        // Column 4: Brand
         row.insertCell().textContent = product.brand || 'N/A';
-
-        // Display Category Hierarchy
+        // Column 5: Category (Hierarchy)
         row.insertCell().textContent = product.category_hierarchy_display || (product.category_id ? `ID: ${product.category_id}` : 'N/A');
-
+        // Column 6: Short Description
         row.insertCell().textContent = product.short_description || '';
+        // Column 7: Price
         row.insertCell().textContent = product.price !== null ? parseFloat(product.price).toFixed(2) : 'N/A';
 
+        // Column 8: Enabled
         const enabledCell = row.insertCell();
         const enabledCheckbox = document.createElement('input');
         enabledCheckbox.type = 'checkbox';
         enabledCheckbox.checked = !!product.is_enabled;
-        enabledCheckbox.disabled = true;
+        enabledCheckbox.disabled = true; // Readonly display
         enabledCell.appendChild(enabledCheckbox);
         enabledCell.style.textAlign = 'center';
 
+        // Column 9: Actions
         row.insertCell().innerHTML = `
-            <button class="admin-button edit-button" data-product-id="${product.id}" title="Edit">✏️</button>
+            <button class="admin-button edit-button" data-product-id="${product.id}" title="Edit">🖊️</button>
             <button class="admin-button delete-button" data-product-id="${product.id}" title="Delete">🗑️</button>
         `;
     });
 }
 
 function updatePaginationUI(paginationData) {
-    if (!currentContainer || !paginationData) {
+    if (!currentContainer || !paginationData || typeof paginationData.current_page === 'undefined') {
         if (currentContainer) {
             currentContainer.querySelectorAll('.pagination-controls button').forEach(btn => btn.disabled = true);
             const pageInfoElNull = currentContainer.querySelector('#page-info');
             if (pageInfoElNull) pageInfoElNull.textContent = 'Page N/A';
         }
+        currentPage = 1;
+        lastPage = 1;
         return;
     }
 
@@ -157,14 +166,13 @@ async function populateCategoryDropdown(container, categoryService) {
             });
         }
     } catch (error) {
-        console.error('Failed to fetch or populate categories:', error);
+        console.error('Failed to fetch or populate categories for dropdown:', error);
         selectElement.innerHTML = '<option value="">Error loading categories</option>';
         selectElement.disabled = true;
     }
 }
 
 function setupEventListeners(container, productService) {
-    // ... (Add/Cancel Product form event listeners remain the same)
     const addProductView = container.querySelector('#add-product-view');
     const productListView = container.querySelector('#product-list-view');
     const btnAddNewProduct = container.querySelector('#btn-add-new-product');
@@ -175,6 +183,7 @@ function setupEventListeners(container, productService) {
     const productImageError = container.querySelector('#product-image-error');
     const btnSaveProduct = container.querySelector('#btn-save-product');
     const categorySelect = container.querySelector('#product-category');
+    const productTableBody = container.querySelector('#products-table-body'); // Moved for broader scope
 
     const resetFormAndImage = () => {
         if (addProductForm) addProductForm.reset();
@@ -230,7 +239,7 @@ function setupEventListeners(container, productService) {
                 resetFormAndImage();
                 addProductView.classList.add('view-hidden');
                 productListView.classList.remove('view-hidden');
-                fetchAndDisplayProducts(1); // Refresh list to page 1
+                fetchAndDisplayProducts(1);
             } catch (error) {
                 console.error('Failed to create product:', error);
                 let errorMessage = 'Failed to create product. Please try again.';
@@ -256,9 +265,8 @@ function setupEventListeners(container, productService) {
         });
     }
 
-    // Image validation logic (from previous step)
     if (productImageInput && productImagePreview && productImageError) {
-        productImageInput.addEventListener('change', function() { /* ... existing image validation logic ... */
+        productImageInput.addEventListener('change', function() {
             const file = this.files[0];
             productImageError.textContent = '';
             if (file) {
@@ -280,14 +288,21 @@ function setupEventListeners(container, productService) {
                             if (productImagePreview) productImagePreview.innerHTML = '<span class="preview-text">Image Preview</span>';
                             return;
                         }
-                        const ratio = width / height;
                         const minWidth = 600;
-                        const minRatio = (4 / 3) - 0.001;
-                        const maxRatio = (16 / 9) + 0.001;
                         let isValid = true;
                         let errors = [];
-                        if (width < minWidth) { isValid = false; errors.push(`Image width must be at least ${minWidth}px (is ${width}px).`); }
-                        if (ratio < minRatio || ratio > maxRatio) { isValid = false; errors.push(`Aspect ratio must be between 4:3 (1.33) and 16:9 (1.78). Yours is ~${ratio.toFixed(2)}:1.`); }
+                        if (width < minWidth) {
+                            isValid = false;
+                            errors.push(`Image width must be at least ${minWidth}px (is ${width}px).`);
+                        }
+                        // Integer math for aspect ratio
+                        const isAtLeast4x3 = (width * 3) >= (height * 4);
+                        const isAtMost16x9 = (width * 9) <= (height * 16);
+                        if (!isAtLeast4x3 || !isAtMost16x9) {
+                            isValid = false;
+                            const calculatedRatioForDisplay = width / height;
+                            errors.push(`Aspect ratio must be between 4:3 (approx 1.33) and 16:9 (approx 1.78). Yours is ~${calculatedRatioForDisplay.toFixed(2)}:1.`);
+                        }
                         if (isValid) {
                             productImagePreview.innerHTML = `<img src="${e.target.result}" alt="Image preview">`;
                             productImageError.textContent = '';
@@ -318,36 +333,123 @@ function setupEventListeners(container, productService) {
         });
     }
 
-
-    // --- Pagination Button Event Listeners ---
+    // Pagination Button Event Listeners
     const btnFirstPage = container.querySelector('#btn-first-page');
     const btnPrevPage = container.querySelector('#btn-prev-page');
     const btnNextPage = container.querySelector('#btn-next-page');
     const btnLastPage = container.querySelector('#btn-last-page');
 
-    if (btnFirstPage) {
-        btnFirstPage.addEventListener('click', () => {
-            if (currentPage > 1) fetchAndDisplayProducts(1);
+    if (btnFirstPage) btnFirstPage.addEventListener('click', () => { if (currentPage > 1) fetchAndDisplayProducts(1); });
+    if (btnPrevPage) btnPrevPage.addEventListener('click', () => { if (currentPage > 1) fetchAndDisplayProducts(currentPage - 1); });
+    if (btnNextPage) btnNextPage.addEventListener('click', () => { if (typeof lastPage === 'number' && currentPage < lastPage) fetchAndDisplayProducts(currentPage + 1); });
+    if (btnLastPage) btnLastPage.addEventListener('click', () => { if (typeof lastPage === 'number' && currentPage < lastPage) fetchAndDisplayProducts(lastPage); });
+
+    // Event Listener for Table Actions (Delete and Row Checkbox for selection)
+    if (productTableBody && productService) {
+        productTableBody.addEventListener('click', async (event) => {
+            const targetElement = event.target;
+
+            // Handle individual delete button clicks
+            const deleteButton = targetElement.closest('.delete-button');
+            if (deleteButton) {
+                const productId = deleteButton.dataset.productId;
+                if (!productId) {
+                    console.error('Product ID not found on delete button.');
+                    return;
+                }
+                if (confirm(`Are you sure you want to delete product ID ${productId}?`)) {
+                    try {
+                        const response = await productService.deleteProducts([parseInt(productId, 10)]);
+                        alert(response.message || `Product(s) deleted successfully.`);
+                        fetchAndDisplayProducts(currentPage);
+                    } catch (error) {
+                        console.error('Failed to delete product:', error);
+                        let errorMessage = 'Failed to delete product.';
+                        if (error.responseBody && error.responseBody.message) {
+                            errorMessage = error.responseBody.message;
+                        } else if (error.message) {
+                            errorMessage = error.message;
+                        }
+                        alert(errorMessage);
+                    }
+                }
+            }
+            // Individual row checkboxes (.product-select-row) are now just for selection.
+            // No "select all" sync logic needed here anymore.
         });
     }
-    if (btnPrevPage) {
-        btnPrevPage.addEventListener('click', () => {
-            if (currentPage > 1) fetchAndDisplayProducts(currentPage - 1);
-        });
-    }
-    if (btnNextPage) {
-        btnNextPage.addEventListener('click', () => {
-            // Ensure lastPage is a number and currentPage is less than lastPage
-            if (typeof lastPage === 'number' && currentPage < lastPage) {
-                fetchAndDisplayProducts(currentPage + 1);
+
+    // "Delete Selected" button functionality
+    const btnDeleteSelected = container.querySelector('#btn-delete-selected-products');
+    if (btnDeleteSelected && productTableBody && productService) {
+        btnDeleteSelected.addEventListener('click', async () => {
+            const selectedCheckboxes = productTableBody.querySelectorAll('.product-select-row:checked');
+            const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.productId, 10));
+
+            if (selectedIds.length === 0) {
+                alert('Please select products to delete.');
+                return;
+            }
+
+            if (confirm(`Are you sure you want to delete ${selectedIds.length} selected product(s)?`)) {
+                try {
+                    const response = await productService.deleteProducts(selectedIds);
+                    alert(response.message || `${response.deletedCount || selectedIds.length} product(s) deleted successfully.`);
+                    fetchAndDisplayProducts(currentPage);
+                } catch (error) {
+                    console.error('Failed to delete selected products:', error);
+                    let errorMessage = 'Failed to delete selected products.';
+                    if (error.responseBody && error.responseBody.message) {
+                        errorMessage = error.responseBody.message;
+                    } else if (error.message) {
+                        errorMessage = error.message;
+                    }
+                    alert(errorMessage);
+                }
             }
         });
     }
-    if (btnLastPage) {
-        btnLastPage.addEventListener('click', () => {
-            if (typeof lastPage === 'number' && currentPage < lastPage) {
-                fetchAndDisplayProducts(lastPage);
+
+    // Event Listeners for Batch Enable/Disable Buttons
+    const btnEnableSelected = container.querySelector('#btn-enable-selected-products');
+    const btnDisableSelected = container.querySelector('#btn-disable-selected-products');
+
+    const handleBatchStatusUpdate = async (isEnabledStatus) => {
+        if (!productTableBody || !productService) return; // Ensure dependencies are available
+
+        const selectedCheckboxes = productTableBody.querySelectorAll('.product-select-row:checked');
+        const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.dataset.productId, 10));
+
+        if (selectedIds.length === 0) {
+            alert('Please select products to update.');
+            return;
+        }
+
+        const actionText = isEnabledStatus ? "enable" : "disable";
+        if (confirm(`Are you sure you want to ${actionText} ${selectedIds.length} selected product(s)?`)) {
+            try {
+                const response = await productService.updateProductsEnabledStatus(selectedIds, isEnabledStatus);
+                // Backend response includes 'message' and 'updatedCount' (though updatedCount isn't explicitly in JsonResponse in controller yet)
+                alert(response.message || `Product status updated successfully.`);
+                fetchAndDisplayProducts(currentPage);
+            } catch (error) {
+                console.error(`Failed to ${actionText} selected products:`, error);
+                let errorMessage = `Failed to ${actionText} products.`;
+                if (error.responseBody && error.responseBody.message) {
+                    errorMessage = error.responseBody.message;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                alert(errorMessage);
             }
-        });
+        }
+    };
+
+    if (btnEnableSelected) {
+        btnEnableSelected.addEventListener('click', () => handleBatchStatusUpdate(true));
+    }
+
+    if (btnDisableSelected) {
+        btnDisableSelected.addEventListener('click', () => handleBatchStatusUpdate(false));
     }
 }

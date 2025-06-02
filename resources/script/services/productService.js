@@ -36,5 +36,34 @@ export class ProductService {
         return this.ajaxService.get(`${this.apiBaseUrl}/products?page=${page}`);
     }
 
-    // We will add other methods here later (getProducts, deleteProduct, etc.)
+    async deleteProducts(productIdsArray) {
+        if (!Array.isArray(productIdsArray) || productIdsArray.length === 0) {
+            return Promise.reject(new Error("Product IDs must be a non-empty array."));
+        }
+        // The backend ProductController::deleteProducts expects JSON body: {"ids": [1,2,3]}
+        const payload = { ids: productIdsArray };
+        return this.ajaxService.delete(`${this.apiBaseUrl}/products`, payload);
+    }
+
+    /**
+     * Updates the enabled status for a list of products.
+     * @param {number[]} productIdsArray - An array of product IDs.
+     * @param {boolean} isEnabled - The new enabled status (true for enabled, false for disabled).
+     * @returns {Promise<Object>} The response from the server.
+     */
+    async updateProductsEnabledStatus(productIdsArray, isEnabled) {
+        if (!Array.isArray(productIdsArray) || productIdsArray.length === 0) {
+            return Promise.reject(new Error("Product IDs must be a non-empty array."));
+        }
+        if (typeof isEnabled !== 'boolean') {
+            return Promise.reject(new Error("Enabled status must be a boolean value (true or false)."));
+        }
+
+        const payload = {
+            ids: productIdsArray,
+            is_enabled: isEnabled
+        };
+
+        return this.ajaxService.put(`${this.apiBaseUrl}/products/status-batch`, payload);
+    }
 }

@@ -2,9 +2,9 @@
 
 namespace DemoShop\Business\Interfaces\Repository;
 
-use DemoShop\Data\Model\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Exception;
+use Illuminate\Database\Eloquent\Collection;
 
 // Eloquent Model
 
@@ -19,7 +19,20 @@ interface ProductRepositoryInterface
      */
     public function create(array $productData): bool;
 
-    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator; // <-- ADD THIS METHOD
+    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator;
+
+    public function findByIds(array $productIds): Collection;
+
+    public function deleteByIds(array $productIds): int;
+
+    /**
+     * Updates the 'is_enabled' status for a list of product IDs.
+     *
+     * @param array $productIds Array of product IDs to update.
+     * @param bool $isEnabled The new 'is_enabled' status (true for enabled, false for disabled).
+     * @return int Number of products updated.
+     */
+    public function updateIsEnabledStatus(array $productIds, bool $isEnabled): int;
 
     // Future methods could include:
     // public function findById(int $id): ?Product;

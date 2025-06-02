@@ -92,5 +92,19 @@ class RouteConfig
             [ProductController::class, 'getProducts'],
             [AuthorizeMiddleware::class]
         );
+
+        RouteRegistry::add(
+            'DELETE',
+            '/api/products',
+            [ProductController::class, 'deleteProducts'],
+            [AuthorizeMiddleware::class]
+        );
+
+        RouteRegistry::add(
+            'PUT',
+            '/api/products/status-batch',
+            [ProductController::class, 'batchUpdateProductStatus'],
+            [AuthorizeMiddleware::class]
+        );
     }
 }

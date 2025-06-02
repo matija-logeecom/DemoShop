@@ -116,4 +116,55 @@ class ProductController
             return new JsonResponse(['success' => false, 'message' => 'Failed to retrieve products.'], 500);
         }
     }
+
+    public function deleteProducts(Request $request): Response
+    {
+        $body = $request->getBody();
+        $productIds = $body['ids'] ?? null;
+
+        if (!is_array($productIds) || empty($productIds)) {
+            return new JsonResponse(['success' => false, 'message' => 'Product IDs must be provided as a non-empty array.'], 400);
+        }
+
+        try {
+            $deletedCount = $this->productService->deleteProducts($productIds);
+            if ($deletedCount > 0) {
+                return new JsonResponse(['success' => true, 'message' => "Successfully deleted {$deletedCount} product(s)."], 200);
+            }
+
+            return new JsonResponse(['success' => false, 'message' => 'No products found with the provided IDs, or deletion failed for other reasons.'], 404);
+        } catch (ValidationException $e) {
+            return new JsonResponse(['success' => false, 'message' => $e->getMessage(), 'errors' => $e->getErrors()], 400);
+        } catch (Exception $e) {
+            error_log("Exception in ProductController::deleteProducts: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+            return new JsonResponse(['success' => false, 'message' => 'An error occurred while deleting products.'], 500);
+        }
+    }
+
+    public function batchUpdateProductStatus(Request $request): Response
+    {
+        $body = $request->getBody();
+        $productIds = $body['ids'] ?? null;
+        $newStatus = $body['is_enabled'] ?? null;
+
+        if (!is_array($productIds) || empty($productIds)) {
+            return new JsonResponse(['success' => false, 'message' => 'Product IDs must be provided as a non-empty array.'], 400);
+        }
+        if (!isset($newStatus) || !is_bool($newStatus)) { // Status must be explicitly true or false
+            return new JsonResponse(['success' => false, 'message' => 'A valid enabled status (true or false) must be provided.'], 400);
+        }
+
+        try {
+            $updatedCount = $this->productService->updateProductsEnabledStatus($productIds, $newStatus);
+            $statusText = $newStatus ? "enabled" : "disabled";
+
+            return new JsonResponse(['success' => true, 'message' => "Successfully updated status for relevant products. {$updatedCount} product(s) had their status changed to {$statusText}."], 200);
+
+        } catch (ValidationException $e) {
+            return new JsonResponse(['success' => false, 'message' => $e->getMessage(), 'errors' => $e->getErrors()], 400);
+        } catch (Exception $e) {
+            error_log("Exception in ProductController::batchUpdateProductStatus: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString());
+            return new JsonResponse(['success' => false, 'message' => 'An error occurred while updating product statuses.'], 500);
+        }
+    }
 }

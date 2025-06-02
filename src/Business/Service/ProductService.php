@@ -95,6 +95,89 @@ class ProductService implements ProductServiceInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function deleteProducts(array $productIds): int // <-- IMPLEMENT THIS METHOD
+    {
+        if (empty($productIds)) {
+            return 0;
+        }
+
+        // Validate IDs are integers
+        $validatedIds = [];
+        foreach ($productIds as $id) {
+            if (filter_var($id, FILTER_VALIDATE_INT) && (int)$id > 0) {
+                $validatedIds[] = (int)$id;
+            } else {
+                // Or collect errors and throw ValidationException
+                error_log("ProductService::deleteProducts - Invalid product ID provided: " . $id);
+            }
+        }
+
+        if (empty($validatedIds)) {
+            // Optionally throw ValidationException if all IDs were invalid or none provided.
+            // For now, just return 0 if no valid IDs after filtering.
+            return 0;
+        }
+
+        // 1. Fetch products to get image paths
+        $productsToDelete = $this->productRepository->findByIds($validatedIds);
+
+        // 2. Delete image files
+        foreach ($productsToDelete as $product) {
+            if (!empty($product->image_path)) {
+                $this->removeImage($product);
+            }
+        }
+        // 3. Delete product records from database
+        return $this->productRepository->deleteByIds($validatedIds);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function updateProductsEnabledStatus(array $productIds, bool $newStatus): int // <-- IMPLEMENT THIS METHOD
+    {
+        if (empty($productIds)) {
+            return 0;
+        }
+
+        $validatedIds = [];
+        $errors = [];
+        foreach ($productIds as $id) {
+            if (filter_var($id, FILTER_VALIDATE_INT) && (int)$id > 0) {
+                $validatedIds[] = (int)$id;
+            } else {
+                $errors['ids'] = 'One or more product IDs are invalid.';
+                error_log(
+                    "updateProductsEnabledStatus - Invalid product ID provided: " . print_r($id, true));
+            }
+        }
+
+        if (!empty($errors)) {
+            throw new ValidationException("Invalid input for updating product status.", $errors);
+        }
+
+        if (empty($validatedIds)) {
+            return 0;
+        }
+
+        return $this->productRepository->updateIsEnabledStatus($validatedIds, $newStatus);
+    }
+
+    private function removeImage(mixed $product): void
+    {
+        $filename = basename($product->image_path);
+        $physicalFilePath = $this->physicalImageUploadPath . '/' . $filename;
+
+        if (file_exists($physicalFilePath)) {
+            if (!@unlink($physicalFilePath)) {
+                error_log("ProductService::deleteProducts - Failed to delete image file: " . $physicalFilePath);
+            }
+        }
+    }
+
+    /**
      * Loads all categories from the CategoryService and caches them as maps.
      */
     private function loadAndCacheCategories(): void

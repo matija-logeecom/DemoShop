@@ -1,24 +1,24 @@
+// demoshop/resources/script/ajax.js
+
 export class AjaxService {
-    async _request(url, method = 'GET', data = null, headers = {}, isFormData = false) { // Added isFormData flag
+    async _request(url, method = 'GET', data = null, headers = {}, isFormData = false) {
         const options = {
             method: method,
-            headers: { ...headers }, // Initialize headers
+            headers: { ...headers },
         };
 
-        if (!isFormData) {
-            options.headers['Content-Type'] = 'application/json'; // Set JSON content type if not FormData
+        if (!isFormData && (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE')) { // Ensure Content-Type for DELETE if data is present
+            options.headers['Content-Type'] = 'application/json';
         }
-        // For FormData, the browser sets Content-Type automatically with the boundary.
-        // So, we don't set Content-Type if isFormData is true.
+        // For FormData, the browser sets Content-Type automatically.
 
         if (data) {
             if (isFormData) {
-                options.body = data; // Assign FormData directly
-            } else if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
+                options.body = data;
+            } else if (method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE') { // ADDED DELETE
                 options.body = JSON.stringify(data);
             }
         }
-
 
         try {
             const response = await fetch(url, options);
@@ -34,7 +34,6 @@ export class AjaxService {
                     errorPayload.message = serverErrorJson.error || serverErrorJson.message || errorPayload.message;
                     errorPayload.responseBody = serverErrorJson;
                 } catch (e) {
-                    // If error response is not JSON, text() might be better.
                     try {
                         const serverErrorText = await response.text();
                         errorPayload.message = serverErrorText || errorPayload.message;
@@ -51,7 +50,7 @@ export class AjaxService {
                 throw error;
             }
 
-            if (response.status === 204 || response.headers.get("content-length") === "0") { // Handle 204 or empty body
+            if (response.status === 204 || response.headers.get("content-length") === "0") {
                 return null;
             }
             return await response.json();
@@ -71,21 +70,20 @@ export class AjaxService {
     }
 
     async post(url, data, headers = {}) {
-        return this._request(url, 'POST', data, headers);
+        return this._request(url, 'POST', data, headers, false);
     }
 
-    // New method specifically for FormData
     async postWithFormData(url, formData, headers = {}) {
-        return this._request(url, 'POST', formData, headers, true); // Pass true for isFormData
+        return this._request(url, 'POST', formData, headers, true);
     }
-
 
     async put(url, data, headers = {}) {
-        return this._request(url, 'PUT', data, headers);
+        return this._request(url, 'PUT', data, headers, false);
     }
 
-    async delete(url, headers = {}) {
-        return this._request(url, 'DELETE', null, headers);
+    // MODIFIED delete method to accept data
+    async delete(url, data = null, headers = {}) { // Added data parameter, defaulting to null
+        return this._request(url, 'DELETE', data, headers, false); // Pass data, isFormData is false
     }
 
     static getQueryParameter(name) {
