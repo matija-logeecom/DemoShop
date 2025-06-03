@@ -5,7 +5,6 @@ namespace DemoShop\Business\Interfaces\Service;
 use DemoShop\Business\Exception\FileUploadException;
 use DemoShop\Business\Exception\ValidationException;
 use DemoShop\Business\Model\Product;
-use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use RuntimeException;
 
@@ -16,11 +15,11 @@ interface ProductServiceInterface
      *
      * @param Product $product
      *
-     * @return bool The created Product model instance.
+     * @return bool
      *
-     * @throws ValidationException If validation fails.
-     * @throws FileUploadException If file processing fails.
-     * @throws RuntimeException For other errors during product creation.
+     * @throws ValidationException
+     * @throws FileUploadException
+     * @throws RuntimeException
      */
     public function createProduct(Product $product): bool;
 
@@ -29,12 +28,13 @@ interface ProductServiceInterface
      *
      * @param int $page
      * @param int $perPage
+     * @param array $filters
      *
      * @return LengthAwarePaginator
      *
      * @throws RuntimeException
      */
-    public function getProducts(int $page = 1, int $perPage = 10): LengthAwarePaginator;
+    public function getProducts(int $page = 1, int $perPage = 10, array $filters = []): LengthAwarePaginator;
 
     /**
      * Deletes products with provided IDs

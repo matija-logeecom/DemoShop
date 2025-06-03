@@ -51,4 +51,14 @@ interface CategoryServiceInterface
      * @throws RuntimeException
      */
     public function deleteCategory(int $id): bool;
+
+    /**
+     * Collects the target category ID and all its descendant IDs.
+     *
+     * @param int $targetCategoryId
+     * @param array $allCategoriesData
+     *
+     * @return array
+     */
+    public function collectCategoryAndDescendantIds(int $targetCategoryId, array $allCategoriesData): array;
 }

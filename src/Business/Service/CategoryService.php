@@ -131,13 +131,9 @@ class CategoryService implements CategoryServiceInterface
     }
 
     /**
-     * Collects the target category ID and all its descendant IDs.
-     *
-     * @param int $targetCategoryId
-     * @param array $allCategoriesData
-     * @return array
+     * @inheritDoc
      */
-    private function collectCategoryAndDescendantIds(int $targetCategoryId, array $allCategoriesData): array
+    public function collectCategoryAndDescendantIds(int $targetCategoryId, array $allCategoriesData): array
     {
         $maps = $this->buildCategoryMaps($allCategoriesData);
         $categoriesById = $maps['byId'] ?? [];

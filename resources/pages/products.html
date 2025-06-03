@@ -1,5 +1,33 @@
 <div id="product-list-view">
     <h2>Products</h2>
+
+    <div class="product-filters-container content-panel">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="filter-keyword">Keyword:</label>
+                <input type="text" id="filter-keyword" name="keyword" placeholder="Search keyword..."
+                       class="admin-input">
+            </div>
+            <div class="filter-group">
+                <label for="filter-category">Category:</label>
+                <select id="filter-category" name="category_id" class="admin-select">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-min-price">Min Price:</label>
+                <input type="number" id="filter-min-price" name="min_price" placeholder="Min" class="admin-input">
+            </div>
+            <div class="filter-group">
+                <label for="filter-max-price">Max Price:</label>
+                <input type="number" id="filter-max-price" name="max_price" placeholder="Max" class="admin-input">
+            </div>
+            <div class="filter-group filter-buttons">
+                <button id="btn-apply-filters" class="admin-button">Filter</button>
+                <button id="btn-clear-filters" class="admin-button admin-button-secondary">Clear</button>
+            </div>
+        </div>
+    </div>
     <div class="product-actions-bar">
         <button id="btn-add-new-product" class="admin-button">Add New Product</button>
         <button id="btn-delete-selected-products" class="admin-button">Delete Selected</button>
@@ -11,7 +39,8 @@
         <table class="products-table">
             <thead>
             <tr>
-                <th>Selected</th> <th>Title</th>
+                <th>Selected</th>
+                <th>Title</th>
                 <th>SKU</th>
                 <th>Brand</th>
                 <th>Category</th>
@@ -27,15 +56,15 @@
     </div>
 
     <div class="pagination-controls">
-        <button id="btn-first-page" class="admin-button">&lt;&lt;</button>
-        <button id="btn-prev-page" class="admin-button">&lt;</button>
+        <button id="btn-first-page" class="admin-button">&lt;&lt;&lt;</button>
+        <button id="btn-prev-page" class="admin-button">&lt;&lt;</button>
         <span id="page-info">Page 1 / X</span>
-        <button id="btn-next-page" class="admin-button">&gt;</button>
-        <button id="btn-last-page" class="admin-button">&gt;&gt;</button>
+        <button id="btn-next-page" class="admin-button">&gt;&gt;</button>
+        <button id="btn-last-page" class="admin-button">&gt;&gt;&gt;</button>
     </div>
 </div>
 
-<div id="add-product-view" class="view-hidden"> <h2>Add New Product</h2>
+<div id="add-product-view" class="view-hidden"><h2>Add New Product</h2>
     <div class="content-panel">
         <form id="form-add-product">
             <div class="form-columns-wrapper">
@@ -71,16 +100,18 @@
                         <textarea id="product-description" name="description" rows="5"></textarea>
                     </div>
                     <div class="form-group">
-                        <label></label> <div class="checkbox-area">
-                        <input type="checkbox" id="product-enabled" name="enabled" value="1">
-                        <label for="product-enabled" class="checkbox-label">Enabled in shop</label>
-                    </div>
+                        <label></label>
+                        <div class="checkbox-area">
+                            <input type="checkbox" id="product-enabled" name="enabled" value="1">
+                            <label for="product-enabled" class="checkbox-label">Enabled in shop</label>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label></label> <div class="checkbox-area">
-                        <input type="checkbox" id="product-featured" name="featured" value="1">
-                        <label for="product-featured" class="checkbox-label">Featured product</label>
-                    </div>
+                        <label></label>
+                        <div class="checkbox-area">
+                            <input type="checkbox" id="product-featured" name="featured" value="1">
+                            <label for="product-featured" class="checkbox-label">Featured product</label>
+                        </div>
                     </div>
                 </div>
 
@@ -91,15 +122,17 @@
                             <div id="product-image-preview">
                                 <span class="preview-text">Image Preview</span>
                             </div>
-                            <input type="file" id="product-image" name="image" accept="image/*" class="image-upload-input">
-                            <div id="product-image-error" class="image-validation-error"></div> </div>
+                            <input type="file" id="product-image" name="image" accept="image/*"
+                                   class="image-upload-input">
+                            <div id="product-image-error" class="image-validation-error"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        <div class="form-actions">
-            <button type="submit" id="btn-save-product" class="admin-button">Save Product</button>
-            <button type="button" id="btn-cancel-add-product" class="admin-button">Cancel</button>
-        </div>
+            <div class="form-actions">
+                <button type="submit" id="btn-save-product" class="admin-button">Save Product</button>
+                <button type="button" id="btn-cancel-add-product" class="admin-button">Cancel</button>
+            </div>
         </form>
     </div>
 </div>

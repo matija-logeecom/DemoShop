@@ -88,7 +88,22 @@ class ProductController
             $page = isset($queryParams['page']) && is_numeric($queryParams['page']) ? (int)$queryParams['page'] : 1;
             $perPage = 10;
 
-            $paginatedProducts = $this->productService->getProducts($page, $perPage);
+            $filters = [];
+            if (!empty($queryParams['keyword'])) {
+                $filters['keyword'] = trim($queryParams['keyword']);
+            }
+            if (!empty($queryParams['category_id']) && filter_var($queryParams['category_id'],
+                    FILTER_VALIDATE_INT)) {
+                $filters['category_id'] = (int)$queryParams['category_id'];
+            }
+            if (!empty($queryParams['min_price']) && is_numeric($queryParams['min_price'])) {
+                $filters['min_price'] = (float)$queryParams['min_price'];
+            }
+            if (!empty($queryParams['max_price']) && is_numeric($queryParams['max_price'])) {
+                $filters['max_price'] = (float)$queryParams['max_price'];
+            }
+
+            $paginatedProducts = $this->productService->getProducts($page, $perPage, $filters);
 
             return new JsonResponse($paginatedProducts, 200);
         } catch (RuntimeException $e) {

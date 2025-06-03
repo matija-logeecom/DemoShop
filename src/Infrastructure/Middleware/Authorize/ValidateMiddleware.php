@@ -6,7 +6,6 @@ use DemoShop\Business\Interfaces\Service\AuthServiceInterface;
 use DemoShop\Infrastructure\DI\ServiceRegistry;
 use DemoShop\Infrastructure\Middleware\Exception\CredentialsInvalidException;
 use DemoShop\Infrastructure\Request\Request;
-use Exception;
 
 /*
  * Middleware for username and password validation

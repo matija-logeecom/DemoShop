@@ -13,6 +13,9 @@ class PathConfig
         $this->productImageUrlBase = rtrim($urlBase, '/');
     }
 
+    /**
+     * @return string
+     */
     public function getProductImagePhysicalPath(): string
     {
         return $this->productImagePhysicalPath;

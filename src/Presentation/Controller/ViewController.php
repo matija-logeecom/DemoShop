@@ -2,7 +2,6 @@
 
 namespace DemoShop\Presentation\Controller;
 
-use DemoShop\Infrastructure\Request\Request;
 use DemoShop\Infrastructure\Response\HtmlResponse;
 use DemoShop\Infrastructure\Response\Response;
 

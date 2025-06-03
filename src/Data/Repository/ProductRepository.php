@@ -33,10 +33,36 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator
+    public function getAll(int $page = 1, int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
         try {
-            return Product::orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
+            $query = Product::query();
+
+            if (!empty($filters['keyword'])) {
+                $keyword = '%' . $filters['keyword'] . '%';
+                $query->where(function ($q) use ($keyword) {
+                    $q->where('title', 'LIKE', $keyword)
+                        ->orWhere('sku', 'LIKE', $keyword)
+                        ->orWhere('brand', 'LIKE', $keyword)
+                        ->orWhere('short_description', 'LIKE', $keyword)
+                        ->orWhere('description', 'LIKE', $keyword);
+                });
+            }
+
+            if (!empty($filters['category_ids'])) {
+                $query->whereIn('category_id', $filters['category_ids']);
+            }
+
+            if (!empty($filters['min_price']) && is_numeric($filters['min_price'])) {
+                $query->where('price', '>=', (float)$filters['min_price']);
+            }
+
+            if (!empty($filters['max_price']) && is_numeric($filters['max_price'])) {
+                $query->where('price', '<=', (float)$filters['max_price']);
+            }
+
+            return $query
+                ->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $page);
         } catch (QueryException $e) {
             error_log("getAll - Database query failed: " . $e->getMessage());
             throw new RuntimeException("Failed to retrieve products due to a database error.", 0, $e);
@@ -101,7 +127,7 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function updateIsEnabledStatus(array $productIds, bool $isEnabled): int // <-- IMPLEMENT THIS METHOD
+    public function updateIsEnabledStatus(array $productIds, bool $isEnabled): int
     {
         try {
             return Product::whereIn('id', $productIds)->update(['is_enabled' => $isEnabled]);

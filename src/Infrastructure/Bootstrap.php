@@ -104,8 +104,8 @@ class Bootstrap
             ServiceRegistry::set(CategoryServiceInterface::class, new CategoryService());
             ServiceRegistry::set(DashboardServiceInterface::class, new DashboardService());
 
-            $physicalImageUploadPath = $_ENV['PRODUCT_IMAGE_PHYSICAL_PATH'] ?? null;
-            $imageUrlBasePath = $_ENV['PRODUCT_IMAGE_URL_BASE'] ?? null;
+            $physicalImageUploadPath = ServiceRegistry::get(PathConfig::class)->getProductImagePhysicalPath();
+            $imageUrlBasePath = ServiceRegistry::get(PathConfig::class)->getProductImageUrlBase();
 
             if (!$physicalImageUploadPath || !$imageUrlBasePath) {
                 throw new RuntimeException("Product image path configurations " .

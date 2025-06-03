@@ -17,28 +17,24 @@ class RouteConfig
     {
         // Web/Page Routes
         RouteRegistry::add('GET', '/', [ViewController::class, 'landingPage']);
-
         RouteRegistry::add(
             'GET',
             '/login',
             [AuthController::class, 'loginPage'],
             [AlreadyLoggedInMiddleware::class]
         );
-
         RouteRegistry::add(
             'GET',
             '/admin',
             [AdminController::class, 'adminPage'],
             [AuthorizeMiddleware::class]
         );
-
         RouteRegistry::add(
             'POST',
             '/login',
             [AuthController::class, 'sendLoginInfo'],
             [ValidateMiddleware::class, AlreadyLoggedInMiddleware::class]
         );
-
         RouteRegistry::add(
             'GET',
             '/logout',
@@ -53,7 +49,7 @@ class RouteConfig
             [AuthorizeMiddleware::class]
         );
 
-        // Category API Routes (all require authorization)
+        // Category
         RouteRegistry::add(
             'POST',
             '/api/createCategory',
@@ -82,24 +78,21 @@ class RouteConfig
         // Products
         RouteRegistry::add(
             'POST',
-            '/api/product/create',
+            '/api/products',
             [ProductController::class, 'createProduct']
         );
-
         RouteRegistry::add(
             'GET',
             '/api/products',
             [ProductController::class, 'getProducts'],
             [AuthorizeMiddleware::class]
         );
-
         RouteRegistry::add(
             'DELETE',
             '/api/products',
             [ProductController::class, 'deleteProducts'],
             [AuthorizeMiddleware::class]
         );
-
         RouteRegistry::add(
             'PUT',
             '/api/products/status-batch',

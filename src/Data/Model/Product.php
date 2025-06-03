@@ -19,7 +19,7 @@ class Product extends Model
      *
      * @var bool
      */
-    public $timestamps = true; // Assuming you want created_at and updated_at
+    public $timestamps = true;
 
     /**
      * The attributes that are mass assignable.
@@ -45,7 +45,7 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'decimal:2', // Cast price to a decimal with 2 places
+        'price' => 'decimal:2',
         'is_enabled' => 'boolean',
         'is_featured' => 'boolean',
         'category_id' => 'integer',
@@ -58,6 +58,4 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class, 'category_id');
     }
-
-    // You can add other relationships or model-specific methods here later
 }

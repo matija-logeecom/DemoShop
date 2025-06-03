@@ -4,11 +4,8 @@ namespace DemoShop\Business\Interfaces\Repository;
 
 use DemoShop\Data\Model\Product;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use RuntimeException;
-
-// Eloquent Model
 
 interface ProductRepositoryInterface
 {
@@ -28,12 +25,13 @@ interface ProductRepositoryInterface
      *
      * @param int $page
      * @param int $perPage
+     * @param array $filters
      *
      * @return LengthAwarePaginator
      *
      * @throws RuntimeException
      */
-    public function getAll(int $page = 1, int $perPage = 10): LengthAwarePaginator;
+    public function getAll(int $page = 1, int $perPage = 10, array $filters = []): LengthAwarePaginator;
 
     /**
      * Returns a collection of products with provided IDs
@@ -56,6 +54,7 @@ interface ProductRepositoryInterface
      * @throws RuntimeException
      */
     public function findBySku(string $sku): ?Product;
+
     /**
      * Deletes all products with provided IDs
      *

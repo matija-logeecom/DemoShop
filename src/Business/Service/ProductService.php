@@ -2,8 +2,8 @@
 
 namespace DemoShop\Business\Service;
 
-use DemoShop\Business\Interfaces\Repository\CategoryRepositoryInterface;
 use DemoShop\Business\Interfaces\Repository\ProductRepositoryInterface;
+use DemoShop\Business\Interfaces\Service\CategoryServiceInterface;
 use DemoShop\Business\Interfaces\Service\ProductServiceInterface;
 use DemoShop\Business\Model\Product;
 use DemoShop\Business\Exception\ValidationException;
@@ -15,7 +15,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class ProductService implements ProductServiceInterface
 {
     private ProductRepositoryInterface $productRepository;
-    private CategoryRepositoryInterface $categoryRepository;
+    private CategoryServiceInterface $categoryService;
     private string $physicalImageUploadPath;
     private string $imageUrlBasePath;
     private ?array $allCategoriesCache = null;
@@ -23,9 +23,10 @@ class ProductService implements ProductServiceInterface
     private ?array $categoriesByTitleCache = null;
 
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->productRepository = ServiceRegistry::get(ProductRepositoryInterface::class);
-        $this->categoryRepository = ServiceRegistry::get(CategoryRepositoryInterface::class);
+        $this->categoryService = ServiceRegistry::get(CategoryServiceInterface::class);
 
         $this->physicalImageUploadPath = ServiceRegistry::get(PathConfig::class)->getProductImagePhysicalPath();
         $this->imageUrlBasePath = ServiceRegistry::get(PathConfig::class)->getProductImageUrlBase();
@@ -70,9 +71,19 @@ class ProductService implements ProductServiceInterface
     /**
      * @inheritDoc
      */
-    public function getProducts(int $page = 1, int $perPage = 10): LengthAwarePaginator
+    public function getProducts(int $page = 1, int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $paginatedResult = $this->productRepository->getAll($page, $perPage);
+        if (!empty($filters['category_id'])) {
+            $selectedCategoryId = (int)$filters['category_id'];
+
+            $allCategoriesData = $this->categoryService->getCategories();
+            $filters['category_ids'] = $this->categoryService
+                ->collectCategoryAndDescendantIds($selectedCategoryId, $allCategoriesData);
+
+            unset($filters['category_id']);
+        }
+
+        $paginatedResult = $this->productRepository->getAll($page, $perPage, $filters);
 
         $this->loadAndCacheCategories();
 
@@ -87,7 +98,6 @@ class ProductService implements ProductServiceInterface
         });
 
         return $paginatedResult;
-
     }
 
     /**
@@ -180,7 +190,7 @@ class ProductService implements ProductServiceInterface
             return;
         }
 
-        $this->allCategoriesCache = $this->categoryRepository->getCategories();
+        $this->allCategoriesCache = $this->categoryService->getCategories();
         $this->categoriesByIdCache = [];
         $this->categoriesByTitleCache = [];
 

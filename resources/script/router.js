@@ -42,7 +42,8 @@ export class Router {
                 }
             } else {
                 console.warn(`No route handler found for path: ${currentPath}`);
-                this.appRoot.innerHTML = '<h1>404 - Page Not Found</h1><p>Sorry, the page you are looking for does not exist.</p>';
+                this.appRoot.innerHTML =
+                    '<h1>404 - Page Not Found</h1><p>Sorry, the page you are looking for does not exist.</p>';
             }
         }
     }
